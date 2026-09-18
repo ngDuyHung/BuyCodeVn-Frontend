@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: "Segoe UI", Arial, sans-serif;
+  
+  /* Cấu hình mã màu từ index2.html */
+  --color-blue-dark: #0d2137;
+  --color-blue-nav: #0f2b47;
+  --color-blue-primary: #1a5cb8;
+  --color-orange-main: #f97316;
+  --color-orange-dark: #ea6c0a;
+  --color-gray-light: #f5f7fa;
+  --color-gray-border: #e5e7eb;
+  --color-text-muted: #64748b;
+
+  /* Cấu hình Animation */
+  --animate-heroFloat: heroFloat 4s ease-in-out infinite;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base Styles */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #222;
 }
+
+/* CSS cho Hamburger Icon (Duy trì tính động mượt mà) */
+.hamburger-btn.open span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; width: 0; }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+
+/* Animation FadeIn cho Mobile Menu Overlay */
+@keyframes fadeIn { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
+}
+.animate-fadeIn { animation: fadeIn .25s ease; }
