@@ -2,21 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { useAuthLogic } from "@/hooks/useAuthLogic";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isSessionReady, user } = useAuthStore();
   const { logout } = useAuthLogic();
-
-  // Ngăn chặn lỗi Hydration
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Khóa cuộn trang khi mở menu mobile
   useEffect(() => {
@@ -68,18 +64,18 @@ export default function Header() {
 
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center gap-1">
-            <Link href="/" className="px-[13px] py-2 text-[14px] font-semibold text-blue-primary border-b-2 border-blue-primary">
+            <Link href="/" className={`px-[13px] py-2 text-[14px] font-semibold border-b-2 transition-colors ${pathname === "/" ? "text-blue-primary border-blue-primary" : "text-[#2d3748] border-transparent hover:text-blue-primary"}`}>
               Trang chủ
             </Link>
             <div className="relative group">
-              <Link href="#" className="px-[13px] py-2 text-[14px] font-medium text-[#2d3748] hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors flex items-center gap-1">
+              <Link href="/source-code" className={`px-[13px] py-2 text-[14px] font-medium hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors flex items-center gap-1 ${pathname.startsWith("/source-code") ? "text-blue-primary" : "text-[#2d3748]"}`}>
                 Mã nguồn <i className="fas fa-chevron-down text-[10px]"></i>
               </Link>
             </div>
             <Link href="#" className="px-[13px] py-2 text-[14px] font-medium text-[#2d3748] hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors">
               Thuê website
             </Link>
-            <Link href="#" className="px-[13px] py-2 text-[14px] font-medium text-[#2d3748] hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors">
+            <Link href="/hosting" className={`px-[13px] py-2 text-[14px] font-medium hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors ${pathname.startsWith("/hosting") ? "text-blue-primary" : "text-[#2d3748]"}`}>
               Hosting
             </Link>
             <Link href="#" className="px-[13px] py-2 text-[14px] font-medium text-[#2d3748] hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors">
@@ -107,7 +103,7 @@ export default function Header() {
 
             {/* User Profile / Auth Actions */}
             <div className="hidden md:block">
-              {mounted && isAuthenticated ? (
+              {isSessionReady && isAuthenticated ? (
                 <div className="relative profile-dropdown">
                   <button 
                     onClick={() => setIsProfileOpen(!isProfileOpen)} 
@@ -149,7 +145,7 @@ export default function Header() {
                   )}
                 </div>
               ) : (
-                mounted && (
+                isSessionReady && (
                   <Link
                     href="/login"
                     className="bg-blue-primary hover:bg-[#154ea0] text-white px-[22px] py-[9px] rounded-lg text-[14px] font-semibold transition-transform hover:-translate-y-[1px] whitespace-nowrap"
@@ -201,16 +197,16 @@ export default function Header() {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2">
-            <Link href="/" className="flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] border-blue-primary bg-[#f0f6ff] text-blue-primary transition-colors">
+            <Link href="/" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname === "/" ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "border-transparent text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
               Trang chủ
             </Link>
-            <Link href="#" className="flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium text-[#374151] border-l-[3px] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary transition-colors">
+            <Link href="/source-code" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname.startsWith("/source-code") ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "text-[#374151] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
               Mã nguồn <i className="fas fa-chevron-right text-[11px] text-[#9ca3af]"></i>
             </Link>
             <Link href="#" className="flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium text-[#374151] border-l-[3px] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary transition-colors">
               Thuê website
             </Link>
-            <Link href="#" className="flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium text-[#374151] border-l-[3px] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary transition-colors">
+            <Link href="/hosting" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname.startsWith("/hosting") ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "text-[#374151] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
               Hosting
             </Link>
             <Link href="#" className="flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium text-[#374151] border-l-[3px] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary transition-colors">
@@ -225,7 +221,7 @@ export default function Header() {
           </nav>
 
           <div className="p-[16px_18px] border-t border-gray-border bg-gray-50">
-            {mounted && isAuthenticated ? (
+            {isSessionReady && isAuthenticated ? (
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center gap-3 mb-1 px-1">
                   <div className="w-10 h-10 rounded-full bg-orange-main text-white flex items-center justify-center font-bold text-[16px] shrink-0">
@@ -251,7 +247,7 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              mounted && (
+              isSessionReady && (
                 <Link
                   href="/login"
                   onClick={() => setIsMenuOpen(false)}

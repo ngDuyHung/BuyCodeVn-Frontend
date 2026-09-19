@@ -2,82 +2,95 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import FormAlert from "@/components/auth/FormAlert";
+import FormField from "@/components/auth/FormField";
 import { useAuthLogic } from "@/hooks/useAuthLogic";
+import { isValidEmail } from "@/lib/validation";
+import type { LoginPayload } from "@/types/identity";
 
 export default function LoginPage() {
-  const { login, isLoading } = useAuthLogic();
-  const [formData, setFormData] = useState({
+  const { login, isLoading, formError, fieldErrors, resetErrors } =
+    useAuthLogic();
+  const [formData, setFormData] = useState<LoginPayload>({
     email: "",
     password: "",
   });
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const getError = (field: keyof LoginPayload) =>
+    clientErrors[field] || fieldErrors[field]?.[0];
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const field = event.target.name as keyof LoginPayload;
+    setFormData((current) => ({ ...current, [field]: event.target.value }));
+    setClientErrors((current) => ({ ...current, [field]: "" }));
+    resetErrors();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    login(formData);
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const errors: Record<string, string> = {};
+    if (!formData.email.trim()) errors.email = "Vui lòng nhập email.";
+    else if (!isValidEmail(formData.email)) errors.email = "Email không hợp lệ.";
+    if (!formData.password) errors.password = "Vui lòng nhập mật khẩu.";
+
+    setClientErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    void login({ ...formData, email: formData.email.trim() });
   };
 
   return (
-    <div className="min-h-[70vh] bg-gray-light flex items-center justify-center py-10 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-[0_4px_24px_rgba(13,33,55,.07)] w-full max-w-md border border-[#e8edf5]">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-extrabold text-blue-nav mb-2">
-            Đăng Nhập
-          </h1>
-          <p className="text-[14px] text-text-muted">
+    <div className="flex w-full items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md rounded-xl border border-[#e8edf5] bg-white p-8 shadow-[0_4px_24px_rgba(13,33,55,.07)]">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-2xl font-extrabold text-blue-nav">Đăng Nhập</h1>
+          <p className="text-sm text-text-muted">
             Chào mừng bạn quay trở lại với BUYCODE.VN
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-[#475569]">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Nhập email của bạn"
-              className="h-[40px] px-3 border border-[#e2e8f0] rounded-lg text-[13.5px] outline-none transition-all focus:border-blue-primary focus:shadow-[0_0_0_3px_rgba(26,92,184,.1)]"
-            />
-          </div>
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          <FormAlert message={formError} />
+          <FormField
+            id="login-email"
+            name="email"
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Nhập email của bạn"
+            autoComplete="email"
+            error={getError("email")}
+            required
+          />
+          <FormField
+            id="login-password"
+            name="password"
+            label="Mật khẩu"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Nhập mật khẩu"
+            autoComplete="current-password"
+            error={getError("password")}
+            required
+          />
 
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-[13px] font-semibold text-[#475569]">
-                Mật khẩu <span className="text-red-500">*</span>
-              </label>
-              <Link
-                href="#"
-                className="text-[12px] font-semibold text-blue-primary hover:text-orange-main transition-colors"
-              >
-                Quên mật khẩu?
-              </Link>
-            </div>
-            <input
-              type="password"
-              name="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Nhập mật khẩu"
-              className="h-[40px] px-3 border border-[#e2e8f0] rounded-lg text-[13.5px] outline-none transition-all focus:border-blue-primary focus:shadow-[0_0_0_3px_rgba(26,92,184,.1)]"
-            />
-          </div>
+          <p className="text-right text-xs text-text-muted">
+            Quên mật khẩu hiện chưa được hỗ trợ.
+          </p>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-2 w-full bg-blue-primary hover:bg-[#154ea0] text-white font-bold h-[42px] rounded-lg text-[14px] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="mt-2 flex h-[42px] w-full items-center justify-center gap-2 rounded-lg bg-blue-primary text-sm font-bold text-white transition-colors hover:bg-[#154ea0] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
-              <i className="fas fa-spinner fa-spin"></i>
+              <>
+                <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+                Đang đăng nhập
+              </>
             ) : (
               "Đăng Nhập"
             )}
@@ -88,7 +101,7 @@ export default function LoginPage() {
           Chưa có tài khoản?{" "}
           <Link
             href="/register"
-            className="font-bold text-blue-primary hover:text-orange-main transition-colors"
+            className="font-bold text-blue-primary transition-colors hover:text-orange-main"
           >
             Đăng ký ngay
           </Link>

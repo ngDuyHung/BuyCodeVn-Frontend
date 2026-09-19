@@ -1,23 +1,29 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { financeService } from "@/services/client/financeService";
+import { normalizeApiError } from "@/lib/api-error";
+import type {
+  ActiveBankAccount,
+  DepositPayload,
+  DepositResult,
+} from "@/types/finance";
 
 export const useFinanceLogic = () => {
-  const [banks, setBanks] = useState<any[]>([]);
+  const [banks, setBanks] = useState<ActiveBankAccount[]>([]);
   const [isLoadingBanks, setIsLoadingBanks] = useState(true);
   const [isDepositing, setIsDepositing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Lưu kết quả trả về từ API (Mã QR, số tài khoản...)
-  const [depositResult, setDepositResult] = useState<any>(null);
+  const [depositResult, setDepositResult] = useState<DepositResult | null>(null);
 
   // Tự động lấy danh sách ngân hàng khi component mount
   useEffect(() => {
     const fetchBanks = async () => {
       try {
         const res = await financeService.getBanks();
-        setBanks(res.data || res);
-      } catch (error) {
-        // Lỗi đã được axios interceptor bắt
+        setBanks(res);
+      } catch (requestError) {
+        setError(normalizeApiError(requestError).message);
       } finally {
         setIsLoadingBanks(false);
       }
@@ -25,18 +31,16 @@ export const useFinanceLogic = () => {
     fetchBanks();
   }, []);
 
-  const handleDeposit = async (payload: {
-    bank_account_id: number;
-    amount: number;
-  }) => {
+  const handleDeposit = async (payload: DepositPayload) => {
     setIsDepositing(true);
+    setError(null);
     try {
       const res = await financeService.createDeposit(payload);
       toast.success(res.message || "Tạo lệnh nạp tiền thành công!");
       // res.data chứa thông tin QR và giao dịch từ API[cite: 5]
       setDepositResult(res.data);
-    } catch (error) {
-      // Lỗi do interceptor xử lý
+    } catch (requestError) {
+      setError(normalizeApiError(requestError).message);
     } finally {
       setIsDepositing(false);
     }
@@ -51,6 +55,7 @@ export const useFinanceLogic = () => {
     isLoadingBanks,
     isDepositing,
     depositResult,
+    error,
     handleDeposit,
     resetDeposit,
   };

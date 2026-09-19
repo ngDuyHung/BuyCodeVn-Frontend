@@ -1,10 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'react-toastify';
+import { getApiBaseUrl } from '@/config/env';
+import { normalizeApiError } from '@/lib/api-error';
+import { clearAuthTokenCookie } from '@/lib/auth-cookie';
+
+export const AUTH_UNAUTHORIZED_EVENT = "auth:unauthorized";
 
 const api = axios.create({
-  // Tạm thời để localhost, sau này có thể đổi qua process.env.NEXT_PUBLIC_API_URL
-  baseURL: 'http://localhost:8000/api', 
+  baseURL: getApiBaseUrl(),
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -18,6 +23,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    if (!config.headers["X-Request-ID"] && globalThis.crypto?.randomUUID) {
+      config.headers["X-Request-ID"] = globalThis.crypto.randomUUID();
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -27,28 +35,43 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (axios.isCancel(error)) return Promise.reject(error);
+
+    const apiError = normalizeApiError(error);
+    const skipAuthRedirect = error.config?.skipAuthRedirect === true;
+    const suppressErrorToast = error.config?.suppressErrorToast === true;
+
     if (error.response) {
       const status = error.response.status;
-      const message = error.response.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
 
-      if (status === 401) {
+      if (status === 401 && !skipAuthRedirect) {
         toast.error('Phiên đăng nhập đã hết hạn.');
-        useAuthStore.getState().logout();
-        if (typeof window !== 'undefined') window.location.href = '/login';
+        useAuthStore.getState().clearAuth();
+        clearAuthTokenCookie();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT));
+        }
+      } else if (suppressErrorToast) {
+        // Form hoặc caller sẽ hiển thị lỗi theo field/context riêng.
       } else if (status === 403) {
         toast.error('Bạn không có quyền thực hiện thao tác này.');
       } else if (status === 422) {
-        // Lỗi validation (form) có thể xử lý hiển thị riêng, tạm thời vẫn log toast
-        toast.error(message);
+        toast.error(apiError.message);
+      } else if (status === 429) {
+        toast.error(
+          apiError.retryAfter
+            ? `Bạn thao tác quá nhanh. Vui lòng thử lại sau ${apiError.retryAfter} giây.`
+            : apiError.message,
+        );
       } else if (status >= 500) {
         toast.error('Lỗi máy chủ, vui lòng thử lại sau.');
       } else {
-        toast.error(message);
+        toast.error(apiError.message);
       }
-    } else {
+    } else if (!suppressErrorToast) {
       toast.error('Không thể kết nối đến máy chủ.');
     }
-    return Promise.reject(error);
+    return Promise.reject(apiError);
   }
 );
 

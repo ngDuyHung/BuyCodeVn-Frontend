@@ -1,27 +1,51 @@
 import api from "./api";
+import type { ApiEnvelope } from "@/types/api";
+import type {
+  ChangePasswordPayload,
+  LoginPayload,
+  LoginData,
+  RegisterPayload,
+  User,
+} from "@/types/identity";
 
 export const authService = {
-  // [POST] /api/v1/auth/login[cite: 5]
-  login: async (payload: any) => {
-    const response = await api.post("/v1/auth/login", payload);
-    return response.data;
+  login: async (payload: LoginPayload) => {
+    const response = await api.post<ApiEnvelope<LoginData>>(
+      "/v1/auth/login",
+      payload,
+      {
+        skipAuthRedirect: true,
+        suppressErrorToast: true,
+      },
+    );
+    return response.data.data;
   },
 
-  // [POST] /api/v1/auth/register[cite: 5]
-  register: async (payload: any) => {
-    const response = await api.post("/v1/auth/register", payload);
-    return response.data;
+  register: async (payload: RegisterPayload) => {
+    const response = await api.post<ApiEnvelope<User>>(
+      "/v1/auth/register",
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data.data;
   },
 
-  // [GET] /api/v1/auth/me[cite: 5]
   getMe: async () => {
-    const response = await api.get("/v1/auth/me");
+    const response = await api.get<ApiEnvelope<User>>("/v1/auth/me");
+    return response.data.data;
+  },
+
+  changePassword: async (payload: ChangePasswordPayload) => {
+    const response = await api.post<ApiEnvelope<null>>(
+      "/v1/auth/change-password",
+      payload,
+      { suppressErrorToast: true },
+    );
     return response.data;
   },
 
-  // [POST] /api/v1/auth/logout[cite: 5]
   logout: async () => {
-    const response = await api.post("/v1/auth/logout");
+    const response = await api.post<ApiEnvelope<null>>("/v1/auth/logout");
     return response.data;
   },
 };

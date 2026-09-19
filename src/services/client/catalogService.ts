@@ -1,15 +1,29 @@
 import api from "../api";
+import type { ApiResource, PaginatedResponse } from "@/types/api";
+import type { CatalogQuery, Category, Product } from "@/types/catalog";
 
 export const catalogService = {
-  // Lấy danh sách cây danh mục[cite: 7]
-  getCategories: async () => {
-    const response = await api.get("/v1/catalog/categories");
+  getCategories: async (signal?: AbortSignal) => {
+    const response = await api.get<ApiResource<Category[]>>(
+      "/v1/catalog/categories",
+      { signal, suppressErrorToast: true },
+    );
+    return response.data.data;
+  },
+
+  getProducts: async (params: CatalogQuery = {}, signal?: AbortSignal) => {
+    const response = await api.get<PaginatedResponse<Product>>(
+      "/v1/catalog/products",
+      { params, signal, suppressErrorToast: true },
+    );
     return response.data;
   },
 
-  // Lấy danh sách sản phẩm (có hỗ trợ phân trang, lọc)[cite: 7]
-  getProducts: async (params: any = {}) => {
-    const response = await api.get("/v1/catalog/products", { params });
-    return response.data;
+  getProduct: async (idOrSlug: number | string, signal?: AbortSignal) => {
+    const response = await api.get<ApiResource<Product>>(
+      `/v1/catalog/products/${encodeURIComponent(idOrSlug)}`,
+      { signal, suppressErrorToast: true },
+    );
+    return response.data.data;
   },
 };

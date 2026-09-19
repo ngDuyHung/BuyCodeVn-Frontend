@@ -1,22 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-// Cấu trúc User dựa theo tài liệu API
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  is_active: boolean;
-  roles: string[];
-  permissions: string[];
-}
+import type { User } from '@/types/identity';
 
 interface AuthState {
   token: string | null;
   user: User | null;
+  expiresAt: number | null;
   isAuthenticated: boolean;
-  setAuth: (token: string, user: User) => void;
-  logout: () => void;
+  hasHydrated: boolean;
+  isSessionReady: boolean;
+  setAuth: (token: string, user: User, expiresInSeconds?: number) => void;
+  setUser: (user: User) => void;
+  clearAuth: () => void;
+  setHasHydrated: (hasHydrated: boolean) => void;
+  setSessionReady: (isSessionReady: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -24,12 +21,40 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
+      expiresAt: null,
       isAuthenticated: false,
-      setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
+      hasHydrated: false,
+      isSessionReady: false,
+      setAuth: (token, user, expiresInSeconds = 604800) =>
+        set({
+          token,
+          user,
+          expiresAt: Date.now() + expiresInSeconds * 1000,
+          isAuthenticated: true,
+          isSessionReady: true,
+        }),
+      setUser: (user) => set({ user, isAuthenticated: true }),
+      clearAuth: () =>
+        set({
+          token: null,
+          user: null,
+          expiresAt: null,
+          isAuthenticated: false,
+        }),
+      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
+      setSessionReady: (isSessionReady) => set({ isSessionReady }),
     }),
     {
-      name: 'auth-storage', // Key lưu trong localStorage
+      name: 'auth-storage',
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        expiresAt: state.expiresAt,
+        isAuthenticated: state.isAuthenticated,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

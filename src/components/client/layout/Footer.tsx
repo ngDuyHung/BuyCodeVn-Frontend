@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     // FOOTER
@@ -56,12 +58,12 @@ export default function Footer() {
           </h4>
           <ul className="flex flex-col gap-[10px]">
             <li>
-              <a
-                href="#"
+              <Link
+                href="/source-code"
                 className="text-[13.5px] text-[#94a3b8] transition-all hover:text-orange-main hover:pl-1"
               >
                 Mã nguồn
-              </a>
+              </Link>
             </li>
             <li>
               <a
@@ -72,12 +74,12 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a
-                href="#"
+              <Link
+                href="/hosting"
                 className="text-[13.5px] text-[#94a3b8] transition-all hover:text-orange-main hover:pl-1"
               >
                 Hosting
-              </a>
+              </Link>
             </li>
             <li>
               <a

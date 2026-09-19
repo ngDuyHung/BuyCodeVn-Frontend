@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ServicesSection() {
   return (
  
@@ -38,9 +40,9 @@ export default function ServicesSection() {
                             className="text-[13.5px] text-[#374151] flex items-center gap-[9px] leading-[1.4] before:content-[''] before:shrink-0 before:w-[7px] before:h-[7px] before:rounded-full before:inline-block before:bg-orange-main">
                             Bảo hành &amp; hỗ trợ</li>
                     </ul>
-                    <a href="#"
+                    <Link href="/source-code"
                         className="block w-full text-center p-[11px_20px] border-2 border-blue-primary text-blue-primary rounded-lg text-[14px] font-semibold mt-auto transition-all hover:bg-blue-primary hover:text-white hover:-translate-y-[1px]">Xem
-                        mã nguồn →</a>
+                        mã nguồn →</Link>
                 </div>
 
                 {/* Thue website */}
@@ -94,9 +96,9 @@ export default function ServicesSection() {
                             className="text-[13.5px] text-[#374151] flex items-center gap-[9px] leading-[1.4] before:content-[''] before:shrink-0 before:w-[7px] before:h-[7px] before:rounded-full before:inline-block before:bg-blue-primary">
                             Hỗ trợ 24/7</li>
                     </ul>
-                    <a href="#"
+                    <Link href="/hosting"
                         className="block w-full text-center p-[11px_20px] border-2 border-blue-primary text-blue-primary rounded-lg text-[14px] font-semibold mt-auto transition-all hover:bg-blue-primary hover:text-white hover:-translate-y-[1px]">Xem
-                        hosting →</a>
+                        hosting →</Link>
                 </div>
 
                 {/* VPS Server */}

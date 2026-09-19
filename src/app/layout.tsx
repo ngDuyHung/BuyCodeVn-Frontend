@@ -2,9 +2,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import type { Metadata } from "next";
 import "./globals.css";
-import TopBar from "@/components/client/layout/TopBar";
-import Header from "@/components/client/layout/Header";
-import Footer from "@/components/client/layout/Footer"; // Import thêm Footer
+import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 
 export const metadata: Metadata = {
   title: "BUYCODE.VN - Giải pháp Mã Nguồn & Hạ Tầng Công Nghệ Toàn Diện",
@@ -25,13 +23,10 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         />
       </head>
-      <body className="font-sans bg-white leading-relaxed flex flex-col min-h-screen">
-        <TopBar />
-        <Header />
-        <main className="flex-1">{children}</main>
-        {/* Container hiển thị thông báo lỗi/thành công */}
+      <body className="min-h-screen bg-white font-sans leading-relaxed">
+        <AuthSessionProvider />
+        {children}
         <ToastContainer position="bottom-right" autoClose={3000} />
-        <Footer /> {/* Thêm Footer vào đây */}
       </body>
     </html>
   );

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useFinanceLogic } from "@/hooks/client/useFinanceLogic";
+import { formatCurrency } from "@/lib/format";
+import { isMoneyLessThan, toMoneyString } from "@/lib/money";
 
 export default function DepositPage() {
   const {
@@ -13,14 +15,14 @@ export default function DepositPage() {
     resetDeposit,
   } = useFinanceLogic();
 
-  const [amount, setAmount] = useState<number | "">("");
+  const [amount, setAmount] = useState<string>("");
   const [selectedBank, setSelectedBank] = useState<number | "">("");
 
-  const QUICK_AMOUNTS = [50000, 100000, 200000, 500000, 1000000];
+  const QUICK_AMOUNTS = ["50000", "100000", "200000", "500000", "1000000"];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || amount < 10000) {
+    if (!amount || isMoneyLessThan(amount, "10000")) {
       alert("Số tiền nạp tối thiểu là 10.000đ");
       return;
     }
@@ -30,7 +32,7 @@ export default function DepositPage() {
     }
     handleDeposit({
       bank_account_id: Number(selectedBank),
-      amount: Number(amount),
+      amount: toMoneyString(amount),
     });
   };
 
@@ -87,7 +89,7 @@ export default function DepositPage() {
               <div className="flex justify-between items-center border-b border-blue-primary/10 pb-2">
                 <span className="text-[13px] text-text-muted">Số tiền</span>
                 <span className="font-bold text-orange-main text-[16px]">
-                  {new Intl.NumberFormat("vi-VN").format(depositResult.amount)}đ
+                  {formatCurrency(depositResult.amount)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -148,7 +150,7 @@ export default function DepositPage() {
                     : "border-gray-border text-[#475569] hover:border-blue-primary hover:text-blue-primary"
                 }`}
               >
-                {val / 1000}K
+                {formatCurrency(val)}
               </button>
             ))}
           </div>
@@ -157,7 +159,7 @@ export default function DepositPage() {
             <input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value) || "")}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="Nhập số tiền khác (Tối thiểu 10.000đ)"
               className="w-full h-[44px] pl-4 pr-12 border border-[#e2e8f0] rounded-lg text-[14px] outline-none transition-all focus:border-blue-primary focus:shadow-[0_0_0_3px_rgba(26,92,184,.1)]"
             />

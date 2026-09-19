@@ -1,43 +1,86 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie"; // <-- THÊM DÒNG NÀY
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
+import type { ValidationErrors } from "@/types/api";
+import type {
+  ChangePasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+} from "@/types/identity";
+import {
+  clearAuthTokenCookie,
+  setAuthTokenCookie,
+} from "@/lib/auth-cookie";
+import { getSafeReturnUrl } from "@/lib/auth-redirect";
+import { normalizeApiError } from "@/lib/api-error";
 
 export const useAuthLogic = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
-  const logoutAction = useAuthStore((state) => state.logout);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
 
-  const login = async (payload: any) => {
+  const resetErrors = () => {
+    setFormError(null);
+    setFieldErrors({});
+  };
+
+  const captureError = (error: unknown) => {
+    const apiError = normalizeApiError(error);
+    setFormError(apiError.message);
+    setFieldErrors(apiError.fieldErrors);
+  };
+
+  const login = async (payload: LoginPayload) => {
+    resetErrors();
     setIsLoading(true);
     try {
-      const res = await authService.login(payload);
-      if (res.token) {
-        setAuth(res.token, res.data);
+      const response = await authService.login(payload);
+      setAuth(response.token, response.user, response.expires_in);
+      setAuthTokenCookie(response.token, response.expires_in);
 
-        //  Lưu token vào Cookie để Middleware đọc được (Hết hạn sau 7 ngày)
-        Cookies.set("auth_token", res.token, { expires: 7 });
-
-        toast.success("Đăng nhập thành công!");
-        router.push("/");
-      }
+      toast.success("Đăng nhập thành công!");
+      const search = typeof window === "undefined" ? "" : window.location.search;
+      router.replace(getSafeReturnUrl(search));
+      return true;
     } catch (error) {
-      // Bắt lỗi tự động qua interceptor
+      captureError(error);
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (payload: any) => {
+  const register = async (payload: RegisterPayload) => {
+    resetErrors();
     setIsLoading(true);
     try {
       await authService.register(payload);
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-      router.push("/login");
+      router.replace("/login");
+      return true;
     } catch (error) {
+      captureError(error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const changePassword = async (payload: ChangePasswordPayload) => {
+    resetErrors();
+    setIsLoading(true);
+    try {
+      const response = await authService.changePassword(payload);
+      toast.success(response.message || "Đổi mật khẩu thành công.");
+      return true;
+    } catch (error) {
+      captureError(error);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -50,14 +93,20 @@ export const useAuthLogic = () => {
     } catch (error) {
       console.error(error);
     } finally {
-      logoutAction();
-
-      //  Xóa cookie khi đăng xuất
-      Cookies.remove("auth_token");
-
-      router.push("/login");
+      clearAuth();
+      clearAuthTokenCookie();
+      router.replace("/login");
     }
   };
 
-  return { login, register, logout, isLoading };
+  return {
+    login,
+    register,
+    changePassword,
+    logout,
+    isLoading,
+    formError,
+    fieldErrors,
+    resetErrors,
+  };
 };
