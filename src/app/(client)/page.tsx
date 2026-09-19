@@ -1,5 +1,5 @@
 import HeroSection from "@/components/client/features/HeroSection";
-import SearchBar from "@/components/client/features/SearchBar";
+import SearchBar from "@/components/client/features/CustomDevBar";
 import ServicesSection from "@/components/client/features/ServicesSection";
 import StatsBar from "@/components/client/features/StatsBar";
 import FeaturedProducts from "@/components/client/features/FeaturedProducts";

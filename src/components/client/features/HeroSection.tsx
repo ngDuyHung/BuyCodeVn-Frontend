@@ -1,10 +1,43 @@
+"use client";
+
+import React from "react";
+
 export default function HeroSection() {
   return (
-    //HERO SECTION 
-    <section className="bg-gradient-to-br from-[#e8effc] via-[#edf4ff] to-[#f5f9ff] py-[28px] md:py-[40px] lg:py-[30px] lg:pb-[50px] overflow-hidden relative">
-      {/* Radial gradient bg effect */}
-      <div className="absolute top-0 right-0 w-[55%] h-full bg-[radial-gradient(ellipse_at_80%_50%,rgba(26,92,184,.07)_0%,transparent_70%)] pointer-events-none"></div>
+    // HERO SECTION
+    <section className="bg-[#f8fafc] py-[28px] md:py-[40px] lg:py-[30px] lg:pb-[50px] overflow-hidden relative">
+      
+      {/* =========================================
+          1. BACKGROUND: HIỆU ỨNG ÁNH SÁNG & LƯỚI
+          ========================================= */}
+      <style>
+        {`
+          @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+          }
+          .animate-blob { animation: blob 8s infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+          .animation-delay-4000 { animation-delay: 4s; }
+        `}
+      </style>
+
+      {/* Lưới chấm bi (Dot Grid) */}
+      <div className="absolute inset-0 z-0 opacity-[0.3] bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px]"></div>
+
+      {/* Các khối ánh sáng mờ chuyển động (Aurora / Blobs) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-blue-200/50 rounded-full mix-blend-multiply filter blur-[80px] animate-blob z-0 pointer-events-none"></div>
+      <div className="absolute top-[10%] right-[-5%] w-[35vw] h-[35vw] bg-orange-100/60 rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-2000 z-0 pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] left-[20%] w-[45vw] h-[45vw] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-4000 z-0 pointer-events-none"></div>
+
+      {/* =========================================
+          2. NỘI DUNG HERO (Z-10)
+          ========================================= */}
       <div className="max-w-[1350px] mx-auto px-5 flex flex-col md:flex-col lg:flex-row items-center gap-[30px] lg:gap-2.5 relative z-10">
+        
+        {/* === CỘT TRÁI: VĂN BẢN (Giữ nguyên như cũ) === */}
         <div className="w-full lg:flex-[0_0_48%] lg:max-w-[48%] text-center lg:text-left">
           <span className="inline-flex items-center gap-[6px] bg-[#dbeafe] text-[#1e40af] px-[14px] py-[5px] rounded-full text-[11.5px] font-bold tracking-[.8px] mb-5 uppercase border-none">
             NỀN TẢNG UY TÍN HÀNG ĐẦU VIỆT NAM
@@ -80,6 +113,8 @@ export default function HeroSection() {
             </div>
           </div>
         </div>
+        
+        {/* === CỘT PHẢI: ẢNH NHƯ CŨ === */}
         <div className="w-full max-w-[500px] lg:max-w-none mx-auto lg:flex-1 lg:min-w-0">
           <div className="relative w-full">
             <img
