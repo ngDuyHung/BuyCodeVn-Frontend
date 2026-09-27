@@ -21,7 +21,7 @@ export default function CustomDevBar() {
                 Gia công hệ thống theo yêu cầu
               </h2>
               <p className="text-[12px] text-[#64748b] leading-tight m-0">
-                Giải pháp công nghệ "may đo" chuyên biệt
+                Giải pháp công nghệ &quot;may đo&quot; chuyên biệt
               </p>
             </div>
           </div>
@@ -62,25 +62,6 @@ export default function CustomDevBar() {
               </div>
             </div>
 
-            {/* Social Proof (Nhóm Avatar Ẩn trên Mobile nhỏ để tránh chật) */}
-            <div className="hidden xl:flex items-center gap-[10px] ml-auto">
-              <div className="flex -space-x-2">
-                <div className="w-[28px] h-[28px] rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[10px] text-blue-600 z-30 shadow-sm">
-                  <i className="fas fa-code"></i>
-                </div>
-                <div className="w-[28px] h-[28px] rounded-full bg-orange-100 border-2 border-white flex items-center justify-center text-[10px] text-orange-500 z-20 shadow-sm">
-                  <i className="fas fa-paint-brush"></i>
-                </div>
-                <div className="w-[28px] h-[28px] rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-gray-600 z-10 shadow-sm">
-                  +15
-                </div>
-              </div>
-              <p className="text-[11px] text-[#64748b] font-medium leading-[1.3]">
-                Đội ngũ
-                <br />
-                <span className="text-[#374151] font-bold">Chuyên gia</span>
-              </p>
-            </div>
           </div>
 
           <div className="hidden lg:block w-[1px] h-[36px] bg-[#e5e7eb] shrink-0"></div>
@@ -90,7 +71,7 @@ export default function CustomDevBar() {
               ========================================= */}
           <div className="shrink-0 w-full lg:w-auto mt-[4px] lg:mt-0">
             <Link
-              href="/lien-he"
+              href="mailto:support@buycode.vn?subject=Tu%20van%20phat%20trien%20theo%20yeu%20cau"
               className="flex items-center justify-center gap-[8px] bg-blue-primary hover:bg-[#154ea0] text-white px-[24px] py-[11px] rounded-[8px] font-bold text-[13.5px] transition-all shadow-[0_4px_14px_rgba(26,92,184,.25)] hover:-translate-y-[1px] w-full lg:w-auto group"
             >
               Nhận tư vấn ngay

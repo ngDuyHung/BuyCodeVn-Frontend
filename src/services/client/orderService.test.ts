@@ -145,6 +145,86 @@ describe("orderService", () => {
     );
   });
 
+  it("submits VPS buy and renew with unchanged UUIDs", async () => {
+    vi.mocked(api.post).mockResolvedValue({ data: { success: true, message: "Accepted", data: { order_id: 1 } } });
+    const key = "1cf54b6a-82cb-4e35-98dd-427752f666da";
+    await orderService.buyVps({ vps_plan_id: 1, os_image_id: 3, billing_cycle: "1_month", hostname: "web-01", location_id: 2, idempotency_key: key });
+    await orderService.renewVps(55, { billing_cycle: "1_month", idempotency_key: key });
+    expect(api.post).toHaveBeenNthCalledWith(1, "/v1/orders/buy-vps", expect.objectContaining({ location_id: 2, idempotency_key: key }), { suppressErrorToast: true });
+    expect(api.post).toHaveBeenNthCalledWith(2, "/v1/orders/vps/55/renew", { billing_cycle: "1_month", idempotency_key: key }, { suppressErrorToast: true });
+  });
+
+  it("normalizes domain prices and submits the domain checkout payload", async () => {
+    vi.mocked(api.post)
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          message: null,
+          data: {
+            domain: "school.edu.vn",
+            is_available: true,
+            register_price: 300000,
+            renew_price: 320000,
+            message: "Available",
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          message: "Registered",
+          data: { domain: "school.edu.vn", status: "success" },
+        },
+      });
+
+    await expect(orderService.checkDomain("school.edu.vn")).resolves.toMatchObject({
+      register_price: "300000.00",
+      renew_price: "320000.00",
+    });
+    await orderService.buyDomain({
+      domain: "school.edu.vn",
+      years: 2,
+      contact_info: {
+        name: "Nguyen Van A",
+        email: "owner@example.com",
+        phone: "0900000000",
+      },
+    });
+
+    expect(api.post).toHaveBeenNthCalledWith(
+      1,
+      "/v1/orders/check-domain",
+      { domain: "school.edu.vn" },
+      { signal: undefined, suppressErrorToast: true },
+    );
+    expect(api.post).toHaveBeenNthCalledWith(
+      2,
+      "/v1/orders/buy-domain",
+      expect.objectContaining({ domain: "school.edu.vn", years: 2 }),
+      { suppressErrorToast: true },
+    );
+  });
+
+  it("submits hosting password and renewal contracts unchanged", async () => {
+    vi.mocked(api.post)
+      .mockResolvedValueOnce({ data: { success: true, message: "Changed", data: { new_password: "new-secret" } } })
+      .mockResolvedValueOnce({ data: { success: true, message: "Renewed", data: { order_id: 2, expires_at: "2027-01-01", idempotent: false } } });
+
+    await orderService.changeHostingPassword(4, { new_password: "new-secret" });
+    await orderService.renewHosting(4, { months: 12, idempotency_key: "hosting-key" });
+
+    expect(api.post).toHaveBeenNthCalledWith(1, "/v1/orders/hosting/4/change-password", { new_password: "new-secret" }, { suppressErrorToast: true });
+    expect(api.post).toHaveBeenNthCalledWith(2, "/v1/orders/hosting/4/renew", { months: 12, idempotency_key: "hosting-key" }, { suppressErrorToast: true });
+  });
+
+  it("submits a stable domain renewal key supplied by the caller", async () => {
+    vi.mocked(api.post).mockResolvedValue({ data: { success: true, message: "Pending", data: { renewal_id: 3, order_id: 5, domain: "demo.vn", status: "pending_manual", expires_at: "2027-01-01", idempotent: false } } });
+
+    await orderService.renewDomain(7, { years: 2, idempotency_key: "domain-key" });
+
+    expect(api.post).toHaveBeenCalledWith("/v1/orders/domain/7/renew", { years: 2, idempotency_key: "domain-key" }, { suppressErrorToast: true });
+  });
+
   it("downloads a successful response as a blob and reads its filename", async () => {
     const blob = new Blob(["zip-content"], { type: "application/zip" });
     vi.stubGlobal(

@@ -21,6 +21,8 @@ export default function UserSidebar() {
     { name: "Quản lý VPS", path: "/user/vps", icon: "fas fa-cloud" },
     { name: "Tên miền", path: "/user/domains", icon: "fas fa-globe" },
     { name: "Nạp tiền vào ví", path: "/user/deposit", icon: "fas fa-wallet" },
+    { name: "Rút tiền", path: "/user/withdraw", icon: "fas fa-money-bill-transfer" },
+    { name: "Lịch sử rút tiền", path: "/user/withdrawals", icon: "fas fa-clock-rotate-left" },
     { name: "Đổi mật khẩu", path: "/user/change-password", icon: "fas fa-key" },
   ];
 
@@ -44,7 +46,7 @@ export default function UserSidebar() {
         {menuItems.map((item) => {
           // Xử lý active (Trang chủ /user cần so sánh chính xác tuyệt đối, các trang con so sánh startsWith)
           const isActive =
-            item.path === "/user"
+            item.path === "/user" || item.path === "/user/withdraw"
               ? pathname === item.path
               : pathname.startsWith(item.path);
 

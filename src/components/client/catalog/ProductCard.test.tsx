@@ -39,7 +39,7 @@ describe("ProductCard", () => {
 
     expect(screen.getByRole("img", { name: product.title })).toHaveAttribute(
       "src",
-      "/images/demo_product.png",
+      "/images/demo_product.webp",
     );
   });
 });

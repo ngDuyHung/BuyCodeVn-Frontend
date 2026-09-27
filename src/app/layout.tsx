@@ -3,6 +3,7 @@ import "react-toastify/dist/ReactToastify.css";
 import type { Metadata } from "next";
 import "./globals.css";
 import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
+import NetworkStatus from "@/components/providers/NetworkStatus";
 
 export const metadata: Metadata = {
   title: "BUYCODE.VN - Giải pháp Mã Nguồn & Hạ Tầng Công Nghệ Toàn Diện",
@@ -24,6 +25,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-white font-sans leading-relaxed">
+        <NetworkStatus />
         <AuthSessionProvider />
         {children}
         <ToastContainer position="bottom-right" autoClose={3000} />

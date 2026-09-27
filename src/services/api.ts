@@ -69,7 +69,7 @@ api.interceptors.response.use(
         toast.error(apiError.message);
       }
     } else if (!suppressErrorToast) {
-      toast.error('Không thể kết nối đến máy chủ.');
+      toast.error(apiError.message);
     }
     return Promise.reject(apiError);
   }

@@ -7,13 +7,26 @@ import type { ApiResource, BusinessResponse, PaginatedResponse } from "@/types/a
 import type {
   BuyProductPayload,
   BuyProductResult,
+  BuyDomainPayload,
+  BuyDomainResult,
   BuyHostingPayload,
   BuyHostingResult,
+  BuyVpsPayload,
+  BuyVpsResult,
+  ChangeHostingPasswordPayload,
+  ChangeHostingPasswordResult,
   CouponPreview,
   DownloadedProduct,
+  DomainCheckResult,
   Order,
   OrderQuery,
   PreviewCouponPayload,
+  RenewDomainPayload,
+  RenewDomainResult,
+  RenewHostingPayload,
+  RenewHostingResult,
+  RenewVpsPayload,
+  RenewVpsResult,
 } from "@/types/orders";
 import api, { AUTH_UNAUTHORIZED_EVENT } from "../api";
 
@@ -92,6 +105,76 @@ export const orderService = {
   buyHosting: async (payload: BuyHostingPayload) => {
     const response = await api.post<BusinessResponse<BuyHostingResult>>(
       "/v1/orders/buy-hosting",
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data;
+  },
+
+  buyVps: async (payload: BuyVpsPayload) => {
+    const response = await api.post<BusinessResponse<BuyVpsResult>>(
+      "/v1/orders/buy-vps",
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data;
+  },
+
+  renewVps: async (serviceId: number, payload: RenewVpsPayload) => {
+    const response = await api.post<BusinessResponse<RenewVpsResult>>(
+      `/v1/orders/vps/${serviceId}/renew`,
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data;
+  },
+
+  checkDomain: async (domain: string, signal?: AbortSignal) => {
+    const response = await api.post<ApiResource<DomainCheckResult>>(
+      "/v1/orders/check-domain",
+      { domain },
+      { signal, suppressErrorToast: true },
+    );
+    return {
+      ...response.data.data,
+      register_price: toMoneyString(response.data.data.register_price),
+      renew_price: toMoneyString(response.data.data.renew_price),
+    };
+  },
+
+  buyDomain: async (payload: BuyDomainPayload) => {
+    const response = await api.post<BusinessResponse<BuyDomainResult>>(
+      "/v1/orders/buy-domain",
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data;
+  },
+
+  changeHostingPassword: async (
+    serviceId: number,
+    payload: ChangeHostingPasswordPayload,
+  ) => {
+    const response = await api.post<BusinessResponse<ChangeHostingPasswordResult>>(
+      `/v1/orders/hosting/${serviceId}/change-password`,
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data;
+  },
+
+  renewHosting: async (serviceId: number, payload: RenewHostingPayload) => {
+    const response = await api.post<BusinessResponse<RenewHostingResult>>(
+      `/v1/orders/hosting/${serviceId}/renew`,
+      payload,
+      { suppressErrorToast: true },
+    );
+    return response.data;
+  },
+
+  renewDomain: async (serviceId: number, payload: RenewDomainPayload) => {
+    const response = await api.post<BusinessResponse<RenewDomainResult>>(
+      `/v1/orders/domain/${serviceId}/renew`,
       payload,
       { suppressErrorToast: true },
     );

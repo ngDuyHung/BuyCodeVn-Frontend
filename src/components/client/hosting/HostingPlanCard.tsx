@@ -8,6 +8,7 @@ interface HostingPlanCardProps {
 }
 
 const formatDiskQuota = (megabytes: number) => {
+  if (megabytes === 0) return "Không giới hạn";
   if (megabytes >= 1024) {
     const gigabytes = megabytes / 1024;
     return `${Number.isInteger(gigabytes) ? gigabytes : gigabytes.toFixed(1)} GB`;
@@ -15,9 +16,14 @@ const formatDiskQuota = (megabytes: number) => {
   return `${megabytes} MB`;
 };
 
+const formatLimit = (value: number | undefined, unit = "") => value === 0
+  ? "Không giới hạn"
+  : `${new Intl.NumberFormat("vi-VN").format(value ?? 0)}${unit}`;
+
 export default function HostingPlanCard({ plan, onSelect }: HostingPlanCardProps) {
   const buttonClass =
     "mt-auto inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border-[1.5px] border-blue-primary px-4 text-[13.5px] font-bold text-blue-primary transition-colors hover:bg-blue-primary hover:text-white";
+  const customFeatures = Object.entries(plan.custom_features ?? {}).slice(0, 2);
 
   return (
     <article className="relative flex h-full min-h-[350px] flex-col rounded-lg border-[1.5px] border-[#e5e7eb] bg-white px-4 pb-[18px] pt-[22px] transition duration-200 hover:-translate-y-1 hover:border-[#c7d8f0] hover:shadow-[0_10px_30px_rgba(0,0,0,.1)] lg:px-5 lg:pb-[22px] lg:pt-[26px]">
@@ -37,21 +43,19 @@ export default function HostingPlanCard({ plan, onSelect }: HostingPlanCardProps
           {formatDiskQuota(plan.disk_quota)} lưu trữ
         </li>
         <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-globe w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          Sử dụng tên miền riêng
-        </li>
-        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-calendar-check w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          Chu kỳ từ 1 đến 36 tháng
-        </li>
-        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
           <i className="fas fa-gauge-high w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          Quản lý trong tài khoản
+          {formatLimit(plan.bandwidth_limit_mb, " MB")} băng thông
+        </li>
+        {plan.memory_limit_mb != null && plan.memory_limit_mb > 0 && <li className="flex items-center gap-2 text-[12.5px] text-[#374151]"><i className="fas fa-memory w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />{formatLimit(plan.memory_limit_mb, " MB")} RAM</li>}
+        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
+          <i className="fas fa-database w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
+          {formatLimit(plan.max_databases)} database
         </li>
         <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-headset w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          Hỗ trợ kỹ thuật
+          <i className="fas fa-layer-group w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
+          {formatLimit(plan.max_addon_domains)} addon domain
         </li>
+        {customFeatures.map(([key, value]) => <li key={key} className="flex items-center gap-2 text-[12.5px] text-[#374151]"><i className="fas fa-circle-check w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" /><span><span className="font-semibold">{key}:</span> {value}</span></li>)}
       </ul>
       {onSelect ? (
         <button type="button" onClick={() => onSelect(plan)} className={buttonClass}>

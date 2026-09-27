@@ -28,6 +28,9 @@ describe("authStore", () => {
       isSessionReady: true,
     });
     expect(useAuthStore.getState().expiresAt).toBeGreaterThan(Date.now());
+    expect(useAuthStore.getState().expiresAt! - Date.now()).toBeGreaterThan(
+      604799000,
+    );
   });
 
   it("clears credentials without changing hydration state", () => {

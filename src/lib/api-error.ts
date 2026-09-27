@@ -49,19 +49,32 @@ export const normalizeApiError = (error: unknown): ApiError => {
     const payload = error.response?.data;
     const envelopeFieldErrors = getValidationErrors(payload?.error?.details);
     const retryAfter = Number(error.response?.headers?.["retry-after"]);
+    const isTimeout =
+      error.code === "ECONNABORTED" || error.code === "ETIMEDOUT";
+    const isOffline =
+      typeof navigator !== "undefined" && navigator.onLine === false;
+    const status = error.response?.status;
+    const networkMessage = isTimeout
+      ? "Yêu cầu quá thời gian phản hồi. Vui lòng thử lại."
+      : isOffline
+        ? "Bạn đang ngoại tuyến. Vui lòng kiểm tra kết nối mạng."
+        : "Không thể kết nối đến máy chủ.";
 
     return new ApiError(
+      (status && status >= 500 ? "Lỗi máy chủ, vui lòng thử lại sau." : null) ||
       payload?.error?.message ||
         payload?.message ||
-        "Có lỗi xảy ra, vui lòng thử lại.",
+        (error.response ? "Có lỗi xảy ra, vui lòng thử lại." : networkMessage),
       {
-        status: error.response?.status,
+        status,
         code: payload?.error?.code,
         requestId:
           payload?.request_id || error.response?.headers?.["x-request-id"],
         retryAfter: Number.isFinite(retryAfter) ? retryAfter : undefined,
         fieldErrors:
-          Object.keys(envelopeFieldErrors).length > 0
+          status && status >= 500
+            ? {}
+            : Object.keys(envelopeFieldErrors).length > 0
             ? envelopeFieldErrors
             : payload?.errors,
       },

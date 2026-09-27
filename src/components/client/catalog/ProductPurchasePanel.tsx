@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useDialogAccessibility } from "@/hooks/useDialogAccessibility";
 import { toast } from "react-toastify";
 import { ApiError, normalizeApiError } from "@/lib/api-error";
 import { saveBlob } from "@/lib/download";
@@ -41,6 +42,11 @@ export default function ProductPurchasePanel({
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [isCheckingAccount, setIsCheckingAccount] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const dialogRef = useDialogAccessibility(
+    isOpen,
+    () => setIsOpen(false),
+    !isPurchasing,
+  );
 
   const normalizedCoupon = couponCode.replace(/\s+/g, "").toUpperCase();
   const productPrice = product.price;
@@ -57,15 +63,6 @@ export default function ProductPurchasePanel({
     if (isPurchasing) return "Đang xử lý thanh toán";
     return "Mua ngay";
   }, [isPurchasing, product.is_active]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isPurchasing) setIsOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isPurchasing]);
 
   useEffect(() => {
     if (!isSessionReady || !isAuthenticated) {
@@ -251,6 +248,8 @@ export default function ProductPurchasePanel({
 
       {isOpen && (
         <div
+          ref={dialogRef}
+          tabIndex={-1}
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-4"
           role="dialog"
           aria-modal="true"

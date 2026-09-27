@@ -27,6 +27,11 @@ body {
   color: #222;
 }
 
+:focus-visible {
+  outline: 3px solid #f97316;
+  outline-offset: 3px;
+}
+
 /* CSS cho Hamburger Icon (Duy trì tính động mượt mà) */
 .hamburger-btn.open span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
 .hamburger-btn.open span:nth-child(2) { opacity: 0; width: 0; }
@@ -38,3 +43,12 @@ body {
   to { opacity: 1; } 
 }
 .animate-fadeIn { animation: fadeIn .25s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

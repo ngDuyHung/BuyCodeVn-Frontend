@@ -120,10 +120,18 @@ Quản lý đăng ký, đăng nhập, profile hiện tại, đổi mật khẩu 
   "is_active": true,
   "roles": ["customer"],
   "permissions": [],
+  "wallet": {
+    "balance": "125000.00",
+    "currency": "VND",
+    "is_active": true,
+    "updated_at": "2026-09-26T10:00:00+00:00"
+  },
   "created_at": "2026-09-08T06:16:54+00:00",
   "updated_at": "2026-09-08T06:16:54+00:00"
 }
 ```
+
+`wallet` chỉ được nhúng khi resource đại diện cho chính user đang xác thực (đặc biệt `GET /auth/me`). Header có thể dùng snapshot này để render ngay, sau đó đồng bộ bằng `GET /finance/wallet`. Danh sách user Admin không được dùng field này để đọc ví của user khác.
 
 ### `POST /api/v1/auth/register`
 
@@ -236,6 +244,25 @@ Tất cả endpoint cần Bearer token và permission ghi ở cột tương ứn
 | PATCH | `/api/v1/admin/users/{user}/status` | `users.update` | Body `{ "is_active": false }` |
 | PUT | `/api/v1/admin/users/{user}/roles` | `roles.manage` | Body `{ "roles": ["cskh"] }` |
 | DELETE | `/api/v1/admin/users/{user}` | `users.delete` | Soft delete |
+| GET | `/api/v1/admin/users/{user}/wallet-transactions` | `finance.view` hoặc `wallets.manage` | Lịch sử ví; filter `type`, `date_from`, `date_to`, `per_page` |
+| POST | `/api/v1/admin/users/{user}/wallet-adjustments` | `wallets.manage` | Cộng/trừ số dư có audit và idempotency |
+
+Body điều chỉnh ví:
+
+```json
+{
+  "direction": "credit",
+  "amount": "100000.00",
+  "note": "Bù số dư theo phiếu hỗ trợ",
+  "idempotency_key": "f4ad579d-2fff-4f6f-9757-547fce61f099"
+}
+```
+
+- `direction`: `credit` hoặc `debit`; `amount` phải lớn hơn `0`; `note` bắt buộc, tối đa 255 ký tự; `idempotency_key` bắt buộc là UUID.
+- Mỗi key chỉ có hiệu lực trong một ví. Gửi lại cùng key trả giao dịch đã tạo với `idempotent=true`, không đổi số dư và không ghi audit lần hai.
+- Backend lock row ví trong transaction; lệnh trừ khiến số dư âm hoặc ví đang khóa trả `409`.
+- Lịch sử trả `wallet` và user summary trong `meta`; transaction có `balance_before`, `balance_after`, `reference`, `description` và `created_at`.
+- Hai loại giao dịch mới là `admin_credit` và `admin_debit`. Mọi điều chỉnh thành công ghi activity action `wallet.admin_adjusted`.
 
 Rule bảo mật:
 
@@ -331,6 +358,7 @@ Rule:
 - Nếu không gửi `slug`, backend tự sinh từ `name`.
 - Nếu không gửi `is_active`, mặc định `true`.
 - Không xóa category nếu còn category con hoặc product.
+- Admin category tree trả đủ các tầng con. Update parent bị từ chối `409` nếu tạo vòng trực tiếp hoặc gián tiếp; delete có dependency trả `409`.
 
 ### Product API
 
@@ -398,10 +426,16 @@ Quản lý server, hosting plan, dịch vụ của user và bảng giá TLD. Ser
   "id": 1,
   "name": "WHM 01",
   "slug": "whm-01",
-  "ip_address": "1.2.3.4",
+  "ip_address": "whm.example.com",
   "type": "whm",
   "provisioning_mode": "automatic",
   "login_url": "https://panel.example.com:2083",
+  "api_username": "reseller-user",
+  "api_auth_type": "token",
+  "api_port": 2087,
+  "verify_tls": true,
+  "connect_timeout": 10,
+  "request_timeout": 30,
   "is_active": true,
   "created_at": "2026-09-08T06:16:54+00:00",
   "has_api_token": true
@@ -419,6 +453,12 @@ Quản lý server, hosting plan, dịch vụ của user và bảng giá TLD. Ser
 | POST | `/api/v1/services/servers` |
 | PUT | `/api/v1/services/servers/{id}` |
 | DELETE | `/api/v1/services/servers/{id}` |
+| POST | `/api/v1/services/servers/{id}/test-connection` |
+| GET | `/api/v1/services/servers/{id}/provider-plans` |
+| GET | `/api/v1/services/servers/{id}/provider-capabilities` |
+| POST | `/api/v1/services/servers/{id}/provider-plans` |
+| PUT/PATCH | `/api/v1/services/servers/{id}/provider-plans/{package}` |
+| DELETE | `/api/v1/services/servers/{id}/provider-plans/{package}` |
 
 Query list:
 
@@ -429,11 +469,17 @@ Create body:
 ```json
 {
   "name": "WHM 01",
-  "ip_address": "1.2.3.4",
+  "ip_address": "whm.example.com",
   "type": "whm",
   "provisioning_mode": "automatic",
   "login_url": "https://panel.example.com:2083",
+  "api_username": "reseller-user",
+  "api_auth_type": "token",
   "api_token": "secret",
+  "api_port": 2087,
+  "verify_tls": true,
+  "connect_timeout": 10,
+  "request_timeout": 30,
   "is_active": true
 }
 ```
@@ -441,11 +487,16 @@ Create body:
 Validation:
 
 - `name`: required, string, max 255
-- `ip_address`: required, valid IP, max 50
+- `ip_address`: required, IPv4/IPv6 hoac hostname hop le, max 253
 - `type`: required, in `mock`, `cyberpanel`, `whm`
 - `provisioning_mode`: nullable, in `automatic`, `manual`; mặc định `automatic`
 - `login_url`: nullable, HTTP/HTTPS URL, max 2048; automatic sẽ fallback theo server IP/port nếu bỏ trống
-- `api_token`: nullable, string, max 255
+- `api_token`: nullable, string, max 4096; write-only, de trong khi update de giu secret hien tai
+- `api_username`: nullable, string, max 100; mac dinh `root`
+- `api_auth_type`: nullable, in `token`, `password`; mac dinh `token`
+- `api_port`: nullable, integer, 1-65535; mac dinh `2087`
+- `verify_tls`: nullable boolean; mac dinh `true`
+- `connect_timeout`, `request_timeout`: nullable integer timeout theo giay
 - `is_active`: nullable boolean
 
 Rule: không xóa server nếu còn hosting plan thuộc server đó.
@@ -459,12 +510,92 @@ Rule: không xóa server nếu còn hosting plan thuộc server đó.
   "name": "Basic",
   "whm_package_name": "basic",
   "disk_quota": 1024,
+  "bandwidth_limit_mb": 10240,
+  "memory_limit_mb": 1024,
+  "max_ftp_accounts": 5,
+  "max_email_accounts": 10,
+  "max_databases": 10,
+  "max_subdomains": 5,
+  "max_parked_domains": 2,
+  "max_addon_domains": 2,
+  "custom_features": {
+    "backup": "Hang ngay",
+    "support": "24/7"
+  },
   "price_per_month": "50000.00",
   "is_active": true,
+  "provider_available": true,
+  "provider_synced_at": "2026-09-26T10:00:00+00:00",
   "created_at": "2026-09-08T06:16:54+00:00",
   "server": {}
 }
 ```
+
+`provider_available` va `provider_synced_at` chi thuoc Admin resource. `provider_available=false` cho biet package khong con tren WHM; cron se tat plan local nhung khong ghi de `price_per_month` hoac cac gioi han tai nguyen local ma admin da cau hinh.
+
+Public HostingPlan, order item hosting va snapshot my-service cung tra cac field tai nguyen tu `disk_quota` den `custom_features`, nhung khong tra provider raw data, extension hay custom provider options.
+
+### Quan ly package truc tiep tren WHM
+
+Ba endpoint mutation provider can `services.manage` va chi ho tro server `whm`. Package tao boi reseller co the duoc WHM them prefix; response va local plan luon dung ten canonical WHM tra ve.
+
+`GET /api/v1/services/servers/{id}/provider-capabilities` doc quyen reseller tu WHM `myprivs` va han muc account tu `acctcounts`:
+
+```json
+{
+  "provider": "whm",
+  "username": "reseller-user",
+  "account_limit": { "used": 0, "maximum": null, "remaining": null, "is_unlimited": true },
+  "permissions": {
+    "unlimited_features": true,
+    "unlimited_disk": false,
+    "unlimited_bandwidth": false,
+    "custom_email_limits": true,
+    "addon_domains": true,
+    "parked_domains": true
+  },
+  "field_limits": {
+    "disk_quota": { "maximum": null, "allow_unlimited": false },
+    "max_ftp_accounts": { "maximum": null, "allow_unlimited": true }
+  },
+  "warnings": ["WHM khong cung cap tran MB huu han cua reseller qua quyen API hien tai."],
+  "source": ["myprivs", "acctcounts"]
+}
+```
+
+`maximum=null` khong dong nghia voi duoc phep unlimited. Frontend phai doc `allow_unlimited`: `true` cho phep gui `0`, `false` khoa lua chon, `null` la WHM khong cong bo quyen va se kiem tra luc luu.
+
+Create body:
+
+```json
+{
+  "name": "starter",
+  "disk_quota": 2048,
+  "bandwidth_limit_mb": 20480,
+  "memory_limit_mb": 1024,
+  "max_ftp_accounts": 5,
+  "max_email_accounts": 10,
+  "max_databases": 10,
+  "max_subdomains": 5,
+  "max_parked_domains": 2,
+  "max_addon_domains": 2,
+  "custom_features": { "backup": "Hang ngay" },
+  "package_extensions": ["cloudlinux"],
+  "provider_options": { "LVEPMEM": "1024M" }
+}
+```
+
+`disk_quota` va `bandwidth_limit_mb` la bat buoc khi tao; `0` nghia la unlimited theo WHM va chi hop le khi capability tuong ung cho phep. Cac gioi han con lai mac dinh `0`. `memory_limit_mb` va `custom_features` la thong so local/storefront. WHM chuan khong co RAM package field; de enforce RAM tren CloudLinux/LVE, can dung dung `package_extensions` va key trong `provider_options` ma extension tren server cong bo.
+
+`provider_options` toi da 25 key va khong duoc ghi de `name`, `quota`, `bwlimit`, cac `max*`, `_PACKAGE_EXTENSIONS` hoac `api.version`. Frontend khong tu suy dien extension key. Update khong cho doi ten package; muon doi ten can tao package moi, chuyen account theo quy trinh rieng roi xoa package cu.
+
+Delete body bat buoc xac nhan:
+
+```json
+{ "confirm_name": "napvipvn_starter" }
+```
+
+Sau khi xoa tren WHM, backend giu local plan de bao toan gia va lich su, dat `provider_available=false`, `is_active=false`. Frontend phai canh bao day la thao tac provider va gui chinh ten canonical.
 
 ### Public Hosting Plan API
 
@@ -512,6 +643,15 @@ Create body:
   "name": "Basic",
   "whm_package_name": "basic",
   "disk_quota": 1024,
+  "bandwidth_limit_mb": 10240,
+  "memory_limit_mb": 1024,
+  "max_ftp_accounts": 5,
+  "max_email_accounts": 10,
+  "max_databases": 10,
+  "max_subdomains": 5,
+  "max_parked_domains": 2,
+  "max_addon_domains": 2,
+  "custom_features": { "backup": "Hang ngay" },
   "price_per_month": 50000,
   "is_active": true
 }
@@ -523,8 +663,12 @@ Validation:
 - `name`: required, string, max 255
 - `whm_package_name`: required, string, max 100
 - `disk_quota`: required, integer, min 0
+- `bandwidth_limit_mb`, `memory_limit_mb` va cac field `max_*`: nullable/sometimes integer, min 0
+- `custom_features`: nullable object, toi da 25 key, moi value toi da 255 ky tu
 - `price_per_month`: required, numeric, min 0
 - `is_active`: nullable boolean
+
+Voi server WHM automatic, frontend nen goi `provider-plans`, cho admin chon package provider va co the dung quota tra ve lam gia tri goi y. Gia ban va cac gioi han tai nguyen cua hosting plan la cau hinh local doc lap, co the cao hon package WHM; `0` nghia la unlimited. Cron chi dung tai nguyen provider khi import plan moi, khong ghi de local override cua plan da ton tai.
 
 ### Dịch vụ của user
 
@@ -532,9 +676,10 @@ Validation:
 | --- | --- | --- | --- |
 | GET | `/api/v1/services/my-services` | Token | Filter `service_type`, `status`, `expiring_before`, `per_page` |
 | GET | `/api/v1/services/my-services/{service}` | Token/Owner | ID của user khác trả `404` |
-| GET | `/api/v1/services/my-services/{service}/credentials` | Token/Owner | Chỉ hosting active; response không được cache |
+| GET | `/api/v1/services/my-services/{service}/credentials` | Token/Owner | Hosting/VPS active; response không được cache |
+| POST | `/api/v1/services/my-services/{service}/login-session` | Token/Owner | Tao cPanel SSO URL ngan han; response `no-store` |
 
-Resource trả thông tin hosting/domain, order liên quan, `provisioning_mode`, `provisioned_at`, `pending_renewal` và các action. `actions.can_view_credentials=true` khi hosting active đã có đủ credential. Không trả password trong list/detail, `password_encrypted`, server, API token hoặc contact config.
+Resource trả thông tin hosting/domain/VPS, order liên quan, `provisioning_mode`, `provisioned_at`, `pending_renewal` và các action. `actions.can_view_credentials=true` khi hosting hoặc VPS active đã có đủ credential. Không trả password trong list/detail, `password_encrypted`, server, API token hoặc contact config.
 
 Credential response:
 
@@ -552,7 +697,7 @@ Credential response:
 }
 ```
 
-Frontend chỉ gọi endpoint credential khi người dùng chủ động mở thông tin đăng nhập; không lưu password vào localStorage, analytics hoặc log. Hosting chưa active/chưa đủ credential trả `409`; service của user khác trả `404`.
+Với VPS, response credential có thêm `service_type=vps`, `ip_address` và `login_url=null`. Frontend chỉ gọi endpoint này khi người dùng chủ động mở thông tin đăng nhập; không lưu password vào localStorage, analytics hoặc log. Dịch vụ chưa active/chưa đủ credential trả `409`; service của user khác trả `404`.
 
 ### Admin User Service API
 
@@ -576,6 +721,152 @@ Body kích hoạt hosting manual:
 Command chỉ nhận hosting có `provisioning_mode=manual` và `status=pending`. Khi thành công, backend chuyển service sang `active`, order sang `completed`, tính hạn từ thời điểm kích hoạt, lưu người/thời điểm xử lý và audit không chứa credential. Gọi lại trả `idempotent=true`.
 
 `search` tìm theo domain, tên hoặc email user. Status nhận `pending`, `active`, `suspended`, `expired`, `failed`, `terminated`; `status=pending` gồm hosting manual, đăng ký domain mới và renewal manual đang chờ. Resource không trả `password_encrypted`, password/token/secret/file URL trong config. Dùng `actions.can_activate_hosting` và `actions.can_approve_domain` để hiển thị đúng command.
+
+### VPS Public Catalog
+
+| Method | Endpoint | Auth | Ghi chú |
+| --- | --- | --- | --- |
+| GET | `/api/v1/services/vps-plans` | Public | Chỉ plan active và giá bán |
+| GET | `/api/v1/services/vps-plans/{id}` | Public | Plan inactive trả `404` |
+| GET | `/api/v1/services/vps-os-images` | Public | Chỉ OS active |
+
+Resource plan public:
+
+```json
+{
+  "id": 1,
+  "slug": "kvm-2gb-a1b2c3d4",
+  "name": "KVM 2GB",
+  "group_name": "KVM Vietnam",
+  "cpu": 2,
+  "ram_mb": 2048,
+  "disk_gb": 40,
+  "bandwidth": "Unlimited",
+  "ip_description": "1 IPv4",
+  "pricing": {
+    "1_month": { "amount": 90000 }
+  },
+  "locations": [
+    {
+      "id": 2,
+      "slug": "ho-chi-minh-a1b2c3d4",
+      "code": "HCM",
+      "name": "Ho Chi Minh",
+      "surcharge": "10000.00"
+    }
+  ]
+}
+```
+
+Resource OS chỉ có `id`, `name`, `icon_url`. Location dùng ID nội bộ và giá phụ thu bán do admin cấu hình; không dùng provider location ID. Các resource public không trả `provider_product_id`, `provider_os_id`, `provider_location_id`, giá vốn, raw payload, IP node, JWT hoặc provider secret.
+
+### Mua và quản lý VPS
+
+`POST /api/v1/orders/buy-vps`
+
+```json
+{
+  "vps_plan_id": 1,
+  "os_image_id": 3,
+  "billing_cycle": "1_month",
+  "hostname": "web-01",
+  "location_id": 2,
+  "idempotency_key": "1cf54b6a-82cb-4e35-98dd-427752f666da"
+}
+```
+
+`location_id` là ID nội bộ lấy từ `plan.locations`, không phải ID XVPS; giá thanh toán bằng giá cycle cộng `location.surcharge`. `idempotency_key` là UUID bắt buộc. Gửi lại cùng key trả cùng `order_id/service_id/instance_id`, không trừ ví và không tạo VPS lần hai. Backend không nhận root password khi mua; XVPS tự sinh password và backend lấy sau qua sync.
+
+Response `201`:
+
+```json
+{
+  "success": true,
+  "message": "Đơn VPS đã được tiếp nhận.",
+  "data": {
+    "order_id": 100,
+    "service_id": 55,
+    "instance_id": 8,
+    "status": "active",
+    "hostname": "web-01",
+    "idempotent": false
+  }
+}
+```
+
+Trong lúc provider đang tạo máy, `status` có thể là `creating`, `installing` hoặc `reconciling`. Backend có scheduler `vps:reconcile` mỗi 5 phút; frontend vẫn có thể gọi `POST /api/v1/services/my-services/{service}/vps-sync` khi người dùng bấm làm mới, nhưng không poll dày và không tự gửi lại lệnh mua bằng UUID mới.
+
+Khối VPS trong my-service:
+
+```json
+{
+  "vps": {
+    "instance_id": 8,
+    "hostname": "web-01",
+    "ip_address": "203.0.113.10",
+    "provisioning_status": "active",
+    "power_status": "running",
+    "os_name": "Ubuntu 24.04",
+    "last_synced_at": "2026-09-21T10:00:00+07:00"
+  },
+  "actions": {
+    "can_renew": true,
+    "can_view_credentials": true,
+    "can_manage_vps": true
+  }
+}
+```
+
+Lifecycle client, tất cả cần token và owner:
+
+| Method | Endpoint | Body |
+| --- | --- | --- |
+| POST | `/api/v1/services/my-services/{service}/vps-actions` | `{ "action": "start|stop|restart|poweroff" }` |
+| POST | `/api/v1/services/my-services/{service}/rebuild` | `{ "os_image_id": 3, "new_password": "optional" }` |
+| POST | `/api/v1/services/my-services/{service}/vps-password` | `{ "new_password": "..." }` |
+| POST | `/api/v1/services/my-services/{service}/vps-hostname` | `{ "hostname": "web-02" }` |
+| POST | `/api/v1/services/my-services/{service}/vps-sync` | Không có body |
+| POST | `/api/v1/orders/vps/{service}/renew` | `{ "billing_cycle": "1_month", "idempotency_key": "UUID" }` |
+
+Password dài 10–64 ký tự, không có khoảng trắng và phải đạt ít nhất hai trong ba nhóm chữ thường/chữ hoa/chữ số. Rebuild là thao tác phá hủy dữ liệu; UI phải yêu cầu xác nhận rõ ràng. State transition không hợp lệ trả `409`, cross-owner trả `404`, validation trả `422`.
+
+Gia hạn luôn tạo order và wallet transaction local, đồng thời truyền UUID thành `Idempotency-Key` cho XVPS. Nếu provider timeout/không rõ kết quả, backend trả `409`, giữ operation ở `reconciling` và scheduler retry bằng đúng UUID; UI hiển thị “đang đối soát” và không phát sinh UUID mới. Nhóm lỗi chắc chắn được hoàn ví đúng một lần.
+
+### VPS Admin API
+
+| Method | Endpoint | Permission | Ghi chú |
+| --- | --- | --- | --- |
+| GET | `/api/v1/admin/vps/provider-config` | `services.view` | Masked credential và trạng thái cấu hình |
+| PUT | `/api/v1/admin/vps/provider-config` | `services.manage` | Tạo/cập nhật cấu hình XVPS động |
+| POST | `/api/v1/admin/vps/sync-catalog` | `services.manage` | Đồng bộ plan/OS; plan mới mặc định inactive |
+| GET | `/api/v1/admin/vps/plans` | `services.view` | Có provider mapping và giá vốn |
+| PUT | `/api/v1/admin/vps/plans/{plan}` | `services.manage` | Cập nhật `name`, `sale_pricing`, `is_active` |
+| GET | `/api/v1/admin/vps/locations` | `services.view` | Location, provider surcharge và giá phụ thu bán |
+| PUT | `/api/v1/admin/vps/locations/{location}` | `services.manage` | Cập nhật `name`, `sale_surcharge`, `is_active` |
+| GET | `/api/v1/admin/vps/instances` | `services.view` | Filter `status`, `user_id`, `search`, `per_page` |
+| GET | `/api/v1/admin/vps/instances/{instance}` | `services.view` | Chi tiết và operation history, không có credential |
+| POST | `/api/v1/admin/vps/instances/{instance}/sync` | `services.manage` | Đồng bộ từ provider |
+| POST | `/api/v1/admin/vps/instances/{instance}/retry-provision` | `services.manage` | Chỉ retry create bằng idempotency key cũ |
+| GET | `/api/v1/admin/vps/provider-health` | `services.view` | Balance/scope/thống kê allowlist |
+
+Trước khi bật plan, admin phải cấu hình `sale_pricing` theo key cycle mà provider trả về. Location mới sync về mặc định inactive và chưa có `sale_surcharge`; admin phải cấu hình phụ thu bán rồi bật location. Không sao chép trực tiếp `provider_pricing/provider_surcharge` ra storefront. Endpoint admin instance trả `provider_instance_id/order_code/error` phục vụ đối soát nhưng không trả root password, JWT, API secret hay raw provider payload.
+
+Body cấu hình provider:
+
+```json
+{
+  "environment": "sandbox",
+  "base_url": "https://api-sandbox.xvps.vn",
+  "api_username": "...",
+  "api_app": "...",
+  "api_secret": "...",
+  "max_retries": 2,
+  "timeout_seconds": 30,
+  "is_active": true
+}
+```
+
+Lần cấu hình đầu bắt buộc đủ ba credential. Những lần cập nhật sau có thể bỏ `api_username`, `api_app`, `api_secret` để giữ nguyên giá trị cũ. `environment=sandbox` chỉ nhận `https://api-sandbox.xvps.vn`; `production` chỉ nhận `https://api.xvps.vn`. Response chỉ có `api_username_masked`, `api_app_masked`, `has_api_secret`; frontend không được kỳ vọng backend trả lại secret. Sau khi lưu, token cache cũ bị xóa và request tiếp theo tự lấy JWT mới.
 
 ### Resource `TldPricing`
 
@@ -1370,11 +1661,15 @@ Rule:
 
 ### Hosting Server Factory
 
-`HostingServerFactory::make(type, ip_address, api_token)` hỗ trợ:
+Update 2026-09-27: runtime dung `HostingServerFactory::forServer(server)` de doc credential da decrypt tu Eloquent. WHM username khong hard-code `root`; ho tro token hoac password auth, port rieng, TLS verification va timeout. Interface hien co `testConnection`, `listPlans`, `getPlanCapabilities`, `getAccount`, `createAccount`, `suspendAccount`, `unsuspendAccount`, `terminateAccount`, `changePassword` va `createLoginSession`.
+
+Cron backend: `hosting:suspend-expired`, `hosting:terminate-overdue`, `hosting:recover-pending`, `hosting:reconcile`, `hosting:sync-packages`. Package sync giu nguyen gia ban admin; package moi inactive/gia 0; package mat tren WHM bi disable local.
+
+`HostingServerFactory::forServer(server)` ho tro:
 
 - `mock`: không gọi API thật, dùng local/test.
-- `whm`: gọi WHM API qua `https://{ip}:2087/json-api`, header `Authorization: whm root:{api_token}`.
-- `cyberpanel`: gọi `https://{ip}:8090/api`, dùng `adminUser=admin`, `adminPass={api_token}`.
+- `whm`: goi WHM API qua `https://{hostname_or_ip}:{api_port}/json-api`, dung username va token/password auth trong server config.
+- `cyberpanel`: goi `https://{hostname_or_ip}:{api_port}/api`, dung username/secret trong server config.
 
 Interface chung:
 
@@ -1404,7 +1699,7 @@ Permissions:
 - Catalog: `catalog.view`, `catalog.manage`
 - Orders: `orders.view`, `orders.manage`
 - Services: `services.view`, `services.manage`, `domains.approve`
-- Finance: `finance.view`, `deposits.manage`, `withdrawals.manage`, `bank_accounts.manage`
+- Finance: `finance.view`, `wallets.manage`, `deposits.manage`, `withdrawals.manage`, `bank_accounts.manage`
 - Support: `tickets.view`, `tickets.reply`, `tickets.manage`
 - System: `settings.view`, `settings.manage`
 

@@ -1,4 +1,4 @@
-export const PRODUCT_IMAGE_FALLBACK = "/images/demo_product.png";
+export const PRODUCT_IMAGE_FALLBACK = "/images/demo_product.webp";
 
 export const getSafeExternalUrl = (value?: string | null) => {
   if (!value) return null;

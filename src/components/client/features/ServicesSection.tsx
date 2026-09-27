@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ServicesSection() {
   return (
@@ -21,7 +22,7 @@ export default function ServicesSection() {
                 <div
                     className="bg-white p-[36px_28px_32px] flex flex-col items-center text-center transition-all hover:bg-[#fafcff] hover:shadow-[inset_0_-4px_0_0_#1a5cb8] border-r-0 md:border-b-[1.5px] md:border-r-[1.5px] lg:border-b-0 border-[#e8edf5]">
                     <div className="w-[72px] h-[72px] md:w-[100px] md:h-[100px] flex items-center justify-center mb-5">
-                        <img src="images/code.png" alt="Mã nguồn" className="w-full h-full object-contain block" />
+                        <Image src="/images/code.png" alt="" width={100} height={100} className="block h-full w-full object-contain" />
                     </div>
                     <h3 className="text-[19px] font-bold text-blue-nav mb-2.5">Mã nguồn</h3>
                     <p className="text-[14px] text-text-muted mb-[18px] leading-[1.65]">Kho mã nguồn đa dạng, chất lượng
@@ -49,7 +50,7 @@ export default function ServicesSection() {
                 <div
                     className="bg-white p-[36px_28px_32px] flex flex-col items-center text-center transition-all hover:bg-[#fafcff] hover:shadow-[inset_0_-4px_0_0_#f97316] border-r-0 md:border-b-[1.5px] lg:border-r-[1.5px] lg:border-b-0 border-[#e8edf5]">
                     <div className="w-[72px] h-[72px] md:w-[100px] md:h-[100px] flex items-center justify-center mb-5">
-                        <img src="images/web.png" alt="Thuê website" className="w-full h-full object-contain block" />
+                        <Image src="/images/web.png" alt="" width={100} height={100} className="block h-full w-full object-contain" />
                     </div>
                     <h3 className="text-[19px] font-bold text-blue-nav mb-2.5">Thuê website</h3>
                     <p className="text-[14px] text-text-muted mb-[18px] leading-[1.65]">Sở hữu website chuyên nghiệp, sẵn
@@ -68,16 +69,14 @@ export default function ServicesSection() {
                             className="text-[13.5px] text-[#374151] flex items-center gap-[9px] leading-[1.4] before:content-[''] before:shrink-0 before:w-[7px] before:h-[7px] before:rounded-full before:inline-block before:bg-orange-main">
                             Hỗ trợ trọn đời</li>
                     </ul>
-                    <a href="#"
-                        className="block w-full text-center p-[11px_20px] border-2 border-orange-main bg-orange-main text-white rounded-lg text-[14px] font-semibold mt-auto transition-all hover:bg-orange-dark hover:border-orange-dark hover:-translate-y-[1px]">Xem
-                        dịch vụ →</a>
+                    <span className="mt-auto block w-full rounded-lg border-2 border-gray-border p-[11px_20px] text-center text-[14px] font-semibold text-text-muted">Sắp ra mắt</span>
                 </div>
 
                 {/* Hosting */}
                 <div
                     className="bg-white p-[36px_28px_32px] flex flex-col items-center text-center transition-all hover:bg-[#fafcff] hover:shadow-[inset_0_-4px_0_0_#1a5cb8] border-r-0 md:border-r-[1.5px] lg:border-b-0 md:border-b-0 border-[#e8edf5]">
                     <div className="w-[72px] h-[72px] md:w-[100px] md:h-[100px] flex items-center justify-center mb-5">
-                        <img src="images/hosting.png" alt="Hosting" className="w-full h-full object-contain block" />
+                        <Image src="/images/hosting.png" alt="" width={100} height={100} className="block h-full w-full object-contain" />
                     </div>
                     <h3 className="text-[19px] font-bold text-blue-nav mb-2.5">Hosting</h3>
                     <p className="text-[14px] text-text-muted mb-[18px] leading-[1.65]">Dịch vụ hosting tốc độ cao, ổn định,
@@ -105,7 +104,7 @@ export default function ServicesSection() {
                 <div
                     className="bg-white p-[36px_28px_32px] flex flex-col items-center text-center transition-all hover:bg-[#fafcff] hover:shadow-[inset_0_-4px_0_0_#1a5cb8] border-r-0 md:border-b-0 border-[#e8edf5]">
                     <div className="w-[72px] h-[72px] md:w-[100px] md:h-[100px] flex items-center justify-center mb-5">
-                        <img src="images/vps.png" alt="VPS / Server" className="w-full h-full object-contain block" />
+                        <Image src="/images/vps.png" alt="" width={100} height={100} className="block h-full w-full object-contain" />
                     </div>
                     <h3 className="text-[19px] font-bold text-blue-nav mb-2.5">VPS / Server</h3>
                     <p className="text-[14px] text-text-muted mb-[18px] leading-[1.65]">Máy chủ ảo &amp; máy chủ riêng mạnh
@@ -124,9 +123,7 @@ export default function ServicesSection() {
                             className="text-[13.5px] text-[#374151] flex items-center gap-[9px] leading-[1.4] before:content-[''] before:shrink-0 before:w-[7px] before:h-[7px] before:rounded-full before:inline-block before:bg-blue-primary">
                             Bảo mật &amp; ổn định</li>
                     </ul>
-                    <a href="#"
-                        className="block w-full text-center p-[11px_20px] border-2 border-blue-primary text-blue-primary rounded-lg text-[14px] font-semibold mt-auto transition-all hover:bg-blue-primary hover:text-white hover:-translate-y-[1px]">Xem
-                        VPS/Server →</a>
+                    <Link href="/vps" className="mt-auto block w-full rounded-lg border-2 border-blue-primary p-[11px_20px] text-center text-[14px] font-semibold text-blue-primary hover:bg-blue-primary hover:text-white">Xem gói VPS</Link>
                 </div>
 
             </div>

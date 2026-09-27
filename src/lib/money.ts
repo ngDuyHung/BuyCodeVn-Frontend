@@ -14,6 +14,9 @@ export const multiplyMoney = (
   multiplier: MoneyValue,
 ): MoneyString => toMoneyString(new Decimal(value).times(multiplier));
 
+export const addMoney = (left: MoneyValue, right: MoneyValue): MoneyString =>
+  toMoneyString(new Decimal(left).plus(right));
+
 export const formatMoney = (value: MoneyValue) => {
   const rounded = new Decimal(value)
     .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)

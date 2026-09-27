@@ -35,6 +35,26 @@ export interface Product {
   created_at: string;
   updated_at: string;
   category?: Category;
+  has_download_file?: boolean;
+}
+
+export interface CategoryWritePayload {
+  name: string;
+  slug?: string | null;
+  parent_id?: number | null;
+  is_active: boolean;
+}
+
+export interface ProductWritePayload {
+  category_id: number;
+  type: ProductType;
+  title: string;
+  description?: string | null;
+  thumbnail_url?: string | null;
+  demo_url?: string | null;
+  price: string;
+  file_url?: string | null;
+  is_active: boolean;
 }
 
 export interface CatalogQuery extends ListQuery {

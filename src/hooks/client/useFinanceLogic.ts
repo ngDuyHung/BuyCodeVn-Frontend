@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { financeService } from "@/services/client/financeService";
 import { normalizeApiError } from "@/lib/api-error";
@@ -13,23 +14,29 @@ export const useFinanceLogic = () => {
   const [isLoadingBanks, setIsLoadingBanks] = useState(true);
   const [isDepositing, setIsDepositing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [requestKey, setRequestKey] = useState(0);
 
   const [depositResult, setDepositResult] = useState<DepositResult | null>(null);
 
-  // Tự động lấy danh sách ngân hàng khi component mount
   useEffect(() => {
+    const controller = new AbortController();
     const fetchBanks = async () => {
+      setIsLoadingBanks(true);
+      setError(null);
       try {
-        const res = await financeService.getBanks();
+        const res = await financeService.getBanks(controller.signal);
         setBanks(res);
       } catch (requestError) {
-        setError(normalizeApiError(requestError).message);
+        if (!axios.isCancel(requestError)) {
+          setError(normalizeApiError(requestError).message);
+        }
       } finally {
-        setIsLoadingBanks(false);
+        if (!controller.signal.aborted) setIsLoadingBanks(false);
       }
     };
-    fetchBanks();
-  }, []);
+    void fetchBanks();
+    return () => controller.abort();
+  }, [requestKey]);
 
   const handleDeposit = async (payload: DepositPayload) => {
     setIsDepositing(true);
@@ -37,7 +44,6 @@ export const useFinanceLogic = () => {
     try {
       const res = await financeService.createDeposit(payload);
       toast.success(res.message || "Tạo lệnh nạp tiền thành công!");
-      // res.data chứa thông tin QR và giao dịch từ API[cite: 5]
       setDepositResult(res.data);
     } catch (requestError) {
       setError(normalizeApiError(requestError).message);
@@ -48,7 +54,10 @@ export const useFinanceLogic = () => {
 
   const resetDeposit = () => {
     setDepositResult(null);
+    setError(null);
   };
+
+  const retryBanks = useCallback(() => setRequestKey((key) => key + 1), []);
 
   return {
     banks,
@@ -56,6 +65,8 @@ export const useFinanceLogic = () => {
     isDepositing,
     depositResult,
     error,
+    setError,
+    retryBanks,
     handleDeposit,
     resetDeposit,
   };

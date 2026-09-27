@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useDialogAccessibility } from "@/hooks/useDialogAccessibility";
 import { normalizeApiError } from "@/lib/api-error";
 import { formatCurrency } from "@/lib/format";
 import { isMoneyLessThan, multiplyMoney } from "@/lib/money";
@@ -37,6 +38,7 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [purchaseResult, setPurchaseResult] = useState<BuyHostingResult | null>(null);
+  const dialogRef = useDialogAccessibility(true, onClose, !isSubmitting);
 
   const normalizedCoupon = couponCode.replace(/\s+/g, "").toUpperCase();
   const totalAmount = useMemo(
@@ -63,14 +65,6 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
       });
     return () => controller.abort();
   }, [isAuthenticated]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isSubmitting) onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isSubmitting, onClose]);
 
   const resetCoupon = () => {
     setPreview(null);
@@ -143,6 +137,8 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
 
   return (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-4"
       role="dialog"
       aria-modal="true"

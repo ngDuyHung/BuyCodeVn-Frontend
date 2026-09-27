@@ -145,6 +145,7 @@ export default function OrderHistory() {
             <option value="">Tất cả</option>
             <option value="product">Mã nguồn</option>
             <option value="hosting">Hosting</option>
+            <option value="vps">VPS</option>
             <option value="domain">Tên miền</option>
           </select>
         </label>
