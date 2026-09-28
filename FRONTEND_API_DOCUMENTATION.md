@@ -1691,6 +1691,134 @@ TenTen setting lấy từ DB:
 - `tenten_api_user`
 - `tenten_api_key`
 
+## Presentation Slides
+
+Quản lý nội dung trình diễn ảnh để thay hero/header hard-code. Release đầu tiên hỗ trợ `placement=home_hero`.
+
+### Public
+
+| Method | Endpoint | Auth | Ghi chú |
+| --- | --- | --- | --- |
+| GET | `/api/v1/presentation-slides` | Public | Query `placement=home_hero`; chỉ trả slide active và đúng lịch |
+
+Public resource:
+
+```json
+{
+  "id": 1,
+  "placement": "home_hero",
+  "eyebrow": "Nền tảng uy tín",
+  "title": "BUYCODE.VN",
+  "description": "Mã nguồn và hạ tầng trong một nền tảng.",
+  "desktop_image_url": "http://localhost:8000/storage/presentation-slides/desktop/hero.webp",
+  "mobile_image_url": null,
+  "image_alt": "Dịch vụ BUYCODE.VN",
+  "primary_cta": { "label": "Khám phá", "url": "/source-code" },
+  "secondary_cta": { "label": "Xem hosting", "url": "/hosting" },
+  "layout": "split",
+  "content_alignment": "left",
+  "theme": "light",
+  "overlay_opacity": 0
+}
+```
+
+Frontend fallback ảnh mobile về `desktop_image_url`. Danh sách đã được backend sắp theo `sort_order`, sau đó `id`.
+
+### Admin
+
+| Method | Endpoint | Permission | Ghi chú |
+| --- | --- | --- | --- |
+| GET | `/api/v1/admin/presentation-slides` | `settings.view` | Filter `search`, `placement`, `is_active`, `per_page` |
+| GET | `/api/v1/admin/presentation-slides/{id}` | `settings.view` | Chi tiết gồm trạng thái và lịch |
+| POST | `/api/v1/admin/presentation-slides` | `settings.manage` | Tạo bằng URL hoặc multipart upload |
+| PUT/PATCH/POST | `/api/v1/admin/presentation-slides/{id}` | `settings.manage` | POST alias dành cho multipart update |
+| POST | `/api/v1/admin/presentation-slides/reorder` | `settings.manage` | `{ "slides": [{ "id": 1, "sort_order": 10 }] }` |
+| DELETE | `/api/v1/admin/presentation-slides/{id}` | `settings.manage` | Xóa record và file upload local |
+
+Ảnh desktop bắt buộc khi tạo: `desktop_image` hoặc `desktop_image_url`; không gửi đồng thời. Upload desktop nhận JPG/PNG/WebP, tối đa 5 MB, tối thiểu 800x300. Ảnh mobile tùy chọn, tối đa 3 MB, tối thiểu 360x360; dùng `remove_mobile_image=true` để xóa.
+
+CTA yêu cầu đủ cặp label/URL. URL chỉ nhận HTTP(S) hoặc path nội bộ bắt đầu bằng `/`; `javascript:` bị từ chối. Preset giao diện: `layout=split|cover`, `content_alignment=left|center|right`, `theme=light|dark`, `overlay_opacity=0..90`. `starts_at`, `ends_at` là ISO datetime nullable và `ends_at` phải sau `starts_at`.
+
+## Navigation Menus
+
+Menu động dùng chung cho header và footer, hỗ trợ tối đa hai cấp. Khi API không khả dụng, frontend dùng cấu trúc mặc định để không làm mất điều hướng.
+
+### Public
+
+`GET /api/v1/navigation-menus`
+
+Không cần token. Chỉ trả mục active và không trả trạng thái, thứ tự, actor hoặc timestamps.
+
+```json
+{
+  "data": {
+    "header": [
+      {
+        "id": 1,
+        "label": "Dịch vụ",
+        "url": null,
+        "icon": "fa-server",
+        "target": "_self",
+        "children": [
+          { "id": 2, "label": "Hosting", "url": "/hosting", "icon": null, "target": "_self", "children": [] }
+        ]
+      }
+    ],
+    "footer": []
+  }
+}
+```
+
+### Admin
+
+| Method | Endpoint | Permission | Ghi chú |
+| --- | --- | --- | --- |
+| GET | `/api/v1/admin/navigation-items` | `settings.view` | Filter `placement=header|footer`, `is_active`, `search` |
+| POST | `/api/v1/admin/navigation-items` | `settings.manage` | Tạo mục cấp một hoặc cấp hai |
+| PUT | `/api/v1/admin/navigation-items/{id}` | `settings.manage` | Cập nhật nội dung, cha, vị trí và trạng thái |
+| POST | `/api/v1/admin/navigation-items/reorder` | `settings.manage` | `{ "items": [{ "id": 1, "sort_order": 10 }] }` |
+| DELETE | `/api/v1/admin/navigation-items/{id}` | `settings.manage` | Nhóm còn mục con trả `409` |
+
+Payload ghi gồm `placement`, `parent_id`, `label`, `url`, `icon`, `target`, `sort_order`, `is_active`. URL chấp nhận path bắt đầu `/`, HTTP(S), `mailto:` hoặc `tel:`; icon nếu có dùng dạng `fa-server`. Parent phải cùng placement, là mục cấp một và không được là chính record đang sửa.
+
+## Site Settings
+
+Cấu hình thương hiệu, SEO mặc định và liên hệ. API này dùng whitelist riêng, không bao giờ trả các key bí mật khác trong bảng `settings` như SePay hoặc TenTen.
+
+### Public
+
+`GET /api/v1/site-settings`
+
+```json
+{
+  "data": {
+    "site_name": "BUYCODE.VN",
+    "site_short_name": "BUYCODE",
+    "site_keywords": "mã nguồn, hosting, VPS, tên miền",
+    "site_description": "Cung cấp mã nguồn chất lượng, hosting, VPS và tên miền.",
+    "site_address": "",
+    "site_hotline": "",
+    "site_facebook_url": "",
+    "site_email": "support@buycode.vn",
+    "site_telegram": "",
+    "site_copyright": "© {year} BUYCODE.VN. All rights reserved.",
+    "favicon_url": null,
+    "logo_url": null,
+    "footer_logo_url": null,
+    "admin_logo_url": null
+  }
+}
+```
+
+### Admin
+
+| Method | Endpoint | Permission | Ghi chú |
+| --- | --- | --- | --- |
+| GET | `/api/v1/admin/site-settings` | `settings.view` | Đọc cấu hình website an toàn |
+| POST | `/api/v1/admin/site-settings` | `settings.manage` | JSON cho text hoặc multipart khi upload ảnh |
+
+Update gửi đầy đủ các field `site_*`. Ảnh gồm `favicon`, `logo`, `footer_logo`, `admin_logo`; dùng `remove_favicon`, `remove_logo`, `remove_footer_logo`, `remove_admin_logo` để xóa file hiện tại. Favicon nhận PNG/ICO tối đa 1 MB; logo nhận JPG/PNG/WebP tối đa 3 MB. Copyright hỗ trợ placeholder `{year}`.
+
 ## Roles Và Permissions Seed
 
 Permissions:

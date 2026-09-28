@@ -894,6 +894,10 @@ Hoan thanh IAM Admin theo contract that; tach settings, support va VPS thanh def
 - [x] `S14-10`: Settings/Support duoc ghi ro deferred backlog; khong tao UI mock.
 - [x] `S14-11`: User wallet history ngay tren tung row, co filter/pagination va so du truoc/sau.
 - [x] `S14-12`: Cong/tru so du co permission `wallets.manage`, note bat buoc, confirm, row lock, audit va UUID idempotency.
+- [x] `S14-13-BE`: Backend presentation slides: public schedule API, Admin CRUD/upload/reorder, preset giao dien va audit.
+- [x] `S14-13-FE`: Them menu Cai dat > Trinh dien anh va thay hero hard-code bang API co fallback.
+- [x] `S14-14`: Live hero preview, menu dong Header/Footer tu Backend den Frontend va sidebar Admin gom nhom dropdown.
+- [x] `S14-15`: Site branding settings: favicon, logo tung khu vuc, SEO, lien he, copyright va wiring storefront/Admin.
 
 ### API
 
@@ -901,6 +905,9 @@ Hoan thanh IAM Admin theo contract that; tach settings, support va VPS thanh def
 - `/api/v1/admin/permissions`, `/api/v1/admin/roles`.
 - `/api/v1/admin/users/{user}/wallet-transactions` va `/wallet-adjustments`.
 - VPS Admin endpoints `/api/v1/admin/vps/*` theo BE-10; settings/support BE-12 chua co contract, khong tao UI mock.
+- Public `/api/v1/presentation-slides`; Admin CRUD/upload/reorder tai `/api/v1/admin/presentation-slides`.
+- Public `/api/v1/navigation-menus`; Admin CRUD/reorder tai `/api/v1/admin/navigation-items`.
+- Public `/api/v1/site-settings`; Admin read/update/upload tai `/api/v1/admin/site-settings`.
 
 ### Nghiem thu
 
@@ -916,12 +923,16 @@ Hoan thanh IAM Admin theo contract that; tach settings, support va VPS thanh def
 
 ### Bang chung hoan thanh
 
-- Frontend full suite: 69 test files, 168 tests; TypeScript, ESLint va production build deu pass.
-- Backend full suite: 80 tests, 585 assertions; IAM, user wallet va VPS permission/security tests pass.
+- Frontend full suite: 82 test files, 192 tests; TypeScript, ESLint va production build deu pass.
+- Backend full suite: 95 tests, 685 assertions; IAM, wallet, VPS, slide, navigation va site settings security tests pass.
 - HTTP frontend: `/admin/users`, `/admin/permissions`, `/admin/vps` tra 200.
 - API local voi admin: users, permissions, roles, VPS provider config/plans/locations/instances deu tra 200.
 - Da sua runtime bug `/admin/roles` do Spatie khong resolve `Role::users()`; controller dem pivot theo `User::class` va co regression test.
 - XVPS credential chi hien masked/boolean; input secret luon rong va de trong khi update se giu secret cu.
+- Migration presentation slides da chay local, public storage link da tao; public va Admin slide API smoke deu tra 200.
+- Frontend Admin presentation route va homepage HTTP smoke tra 200; browser connector khong co browser kha dung nen visual responsive QA chua duoc tu dong xac minh.
+- Navigation migration da chay local; public API tra 5 header root, 2 footer group va Admin API tra 15 record mac dinh.
+- Site settings migration da chay local; public/Admin read va Admin update smoke pass, secret settings khong xuat hien trong public payload.
 - Bao cao chi tiet: `SPRINT_14_REPORT.md`.
 
 ## Sprint 15 - Admin hardening va Production Release Gate

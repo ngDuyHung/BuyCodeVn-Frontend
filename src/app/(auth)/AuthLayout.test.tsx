@@ -11,14 +11,13 @@ vi.mock("@/components/client/layout/Header", () => ({
 vi.mock("@/components/client/layout/Footer", () => ({
   default: () => <footer data-testid="footer" />,
 }));
+vi.mock("@/services/server/navigationService", () => ({ getNavigationMenus: vi.fn().mockResolvedValue(null) }));
+vi.mock("@/services/server/siteSettingService", () => ({ getSiteSettings: vi.fn().mockResolvedValue({}) }));
 
 describe("AuthLayout", () => {
-  it("keeps the public site chrome around auth pages", () => {
-    render(
-      <AuthLayout>
-        <div>Login form</div>
-      </AuthLayout>,
-    );
+  it("keeps the public site chrome around auth pages", async () => {
+    const layout = await AuthLayout({ children: <div>Login form</div> });
+    render(layout);
 
     expect(screen.getByTestId("top-bar")).toBeInTheDocument();
     expect(screen.getByTestId("header")).toBeInTheDocument();

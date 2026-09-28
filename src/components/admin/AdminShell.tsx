@@ -8,8 +8,9 @@ import { useAuthLogic } from "@/hooks/useAuthLogic";
 import AdminForbidden from "./AdminForbidden";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopbar from "./AdminTopbar";
+import type { SiteSettings } from "@/types/site-settings";
 
-export default function AdminShell({ children }: { children: ReactNode }) {
+export default function AdminShell({ children, settings }: { children: ReactNode; settings?: SiteSettings }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuthLogic();
@@ -31,7 +32,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f6f8f9] text-[#172b35] lg:flex">
       {menuOpen && <button type="button" aria-label="Đóng menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-30 bg-black/30 lg:hidden" />}
-      <AdminSidebar user={user} pathname={pathname} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <AdminSidebar user={user} pathname={pathname} open={menuOpen} onClose={() => setMenuOpen(false)} settings={settings} />
       <div className="min-w-0 flex-1">
         <AdminTopbar name={user?.name ?? ""} menuOpen={menuOpen} onOpenMenu={() => setMenuOpen(true)} onLogout={() => void logout()} />
         <main className="mx-auto max-w-[1440px] p-4 md:p-6">{children}</main>

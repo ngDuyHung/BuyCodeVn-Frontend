@@ -4,12 +4,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 import NetworkStatus from "@/components/providers/NetworkStatus";
+import { getSiteSettings } from "@/services/server/siteSettingService";
 
-export const metadata: Metadata = {
-  title: "BUYCODE.VN - Giải pháp Mã Nguồn & Hạ Tầng Công Nghệ Toàn Diện",
-  description:
-    "Cung cấp mã nguồn chất lượng, cho thuê website, hosting, VPS/Server hiệu suất cao.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return {
+    title: settings.site_name,
+    applicationName: settings.site_short_name,
+    description: settings.site_description,
+    keywords: settings.site_keywords.split(",").map((keyword) => keyword.trim()).filter(Boolean),
+    icons: settings.favicon_url ? { icon: settings.favicon_url, shortcut: settings.favicon_url } : undefined,
+    openGraph: { title: settings.site_name, description: settings.site_description, siteName: settings.site_name, locale: "vi_VN", type: "website" },
+  };
+}
 
 export default function RootLayout({
   children,

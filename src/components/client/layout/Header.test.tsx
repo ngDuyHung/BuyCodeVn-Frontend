@@ -20,4 +20,11 @@ describe("Header wallet balance", () => {
     expect(screen.getAllByText("120.000đ").length).toBeGreaterThan(0);
     await waitFor(() => expect(screen.getAllByText("175.000đ").length).toBeGreaterThan(0));
   });
+
+  it("renders dynamic parent and child navigation", () => {
+    vi.mocked(financeService.getWallet).mockResolvedValue({ id: 1, balance: "120000.00", currency: "VND", is_active: true, updated_at: "" });
+    render(<Header items={[{ id: 10, label: "Dịch vụ", url: null, icon: "fa-server", target: "_self", children: [{ id: 11, label: "Cloud VPS", url: "/vps", icon: null, target: "_self", children: [] }] }]} />);
+    expect(screen.getAllByText("Dịch vụ").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Cloud VPS" })[0]).toHaveAttribute("href", "/vps");
+  });
 });

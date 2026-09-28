@@ -1,109 +1,92 @@
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import type { PresentationCta, PresentationSlide } from "@/types/presentation";
 
-export default function HeroSection() {
-  return (
-    // HERO SECTION
-    <section className="bg-[#f8fafc] py-[28px] md:py-[40px] lg:py-[30px] lg:pb-[50px] overflow-hidden relative">
-      
-      {/* =========================================
-          1. BACKGROUND: HIỆU ỨNG ÁNH SÁNG & LƯỚI
-          ========================================= */}
-      {/* Lưới chấm bi (Dot Grid) */}
-      <div className="absolute inset-0 z-0 opacity-[0.3] bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px]"></div>
+const fallbackSlide: PresentationSlide = {
+  id: 0,
+  placement: "home_hero",
+  eyebrow: "NỀN TẢNG UY TÍN HÀNG ĐẦU VIỆT NAM",
+  title: "BUYCODE.VN",
+  description: "Mã nguồn, hosting, VPS và tên miền trong một nền tảng quản lý tập trung, thanh toán trực tiếp bằng số dư ví.",
+  desktop_image_url: "/images/banner_hero.webp",
+  mobile_image_url: null,
+  image_alt: "Giao diện dịch vụ BUYCODE.VN",
+  primary_cta: { label: "Khám phá ngay", url: "/source-code" },
+  secondary_cta: { label: "Xem gói hosting", url: "/hosting" },
+  highlights: [
+    { icon: "fa-award", label: "Chất lượng đảm bảo" },
+    { icon: "fa-tachometer-alt", label: "Tốc độ vượt trội" },
+    { icon: "fa-shield-alt", label: "Bảo mật an toàn" },
+    { icon: "fa-headset", label: "Hỗ trợ 24/7" },
+  ],
+  layout: "split",
+  content_alignment: "left",
+  theme: "light",
+  overlay_opacity: 20,
+};
 
-      {/* =========================================
-          2. NỘI DUNG HERO (Z-10)
-          ========================================= */}
-      <div className="max-w-[1350px] mx-auto px-5 flex flex-col md:flex-col lg:flex-row items-center gap-[30px] lg:gap-2.5 relative z-10">
-        
-        {/* === CỘT TRÁI: VĂN BẢN (Giữ nguyên như cũ) === */}
-        <div className="w-full lg:flex-[0_0_48%] lg:max-w-[48%] text-center lg:text-left">
-          <span className="inline-flex items-center gap-[6px] bg-[#dbeafe] text-[#1e40af] px-[14px] py-[5px] rounded-full text-[11.5px] font-bold tracking-[.8px] mb-5 uppercase border-none">
-            NỀN TẢNG UY TÍN HÀNG ĐẦU VIỆT NAM
-          </span>
+function ActionLink({ action, primary, dark }: { action: PresentationCta; primary?: boolean; dark: boolean }) {
+  const className = primary
+    ? "inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#116966] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_22px_rgba(17,105,102,.24)] transition hover:bg-[#0d5957] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#116966]"
+    : `inline-flex min-h-11 items-center justify-center rounded-md border px-5 py-2.5 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${dark ? "border-white/55 bg-black/15 text-white hover:bg-white/15 focus-visible:outline-white" : "border-[#b8c8cc] bg-white text-[#174452] hover:border-[#116966] hover:text-[#116966] focus-visible:outline-[#116966]"}`;
+  const content = <>{action.label}{primary && <i className="fas fa-arrow-right text-xs" aria-hidden="true" />}</>;
+  return action.url.startsWith("/") ? <Link href={action.url} className={className}>{content}</Link> : <a href={action.url} className={className}>{content}</a>;
+}
 
-          <h1 className="mb-4 text-[32px] font-extrabold leading-[1.15] text-[#0d2137] sm:text-[38px] lg:text-[48px]">BUYCODE.VN</h1>
+function SlideImage({ slide, cover }: { slide: PresentationSlide; cover?: boolean }) {
+  return <picture className={cover ? "absolute inset-0" : "block h-full w-full"}>
+    {slide.mobile_image_url && <source media="(max-width: 639px)" srcSet={slide.mobile_image_url} />}
+    {/* Slide URLs are managed at runtime and cannot be statically allowlisted for next/image. */}
+    <img src={slide.desktop_image_url} alt={slide.image_alt} fetchPriority="high" className={cover ? "h-full w-full object-cover" : "h-full w-full object-contain"} />
+  </picture>;
+}
 
-          <p className="text-[#4b5563] text-[15.5px] mb-[32px] w-full lg:max-w-[500px] leading-[1.75] mx-auto lg:mx-0">
-            Mã nguồn, hosting và tên miền trong một nền tảng quản lý tập trung,
-            thanh toán trực tiếp bằng số dư ví.
-          </p>
+export default function HeroSection({ slides = [], preview = false }: { slides?: PresentationSlide[]; preview?: boolean }) {
+  const items = slides.length ? slides : [fallbackSlide];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const safeActiveIndex = activeIndex % items.length;
+  const activeSlide = items[safeActiveIndex] ?? fallbackSlide;
+  const highlights = activeSlide.highlights ?? [];
 
-          <div className="flex flex-wrap justify-center lg:justify-start gap-[10px] md:gap-[14px] mb-[36px]">
-            <Link
-              href="/source-code"
-              className="bg-blue-primary text-white px-[20px] lg:px-[30px] py-[11px] lg:py-[13px] rounded-lg font-bold text-[14px] lg:text-[15px] flex items-center gap-2 transition-all shadow-[0_4px_18px_rgba(26,92,184,.35)] hover:bg-[#154ea0] hover:-translate-y-[2px] hover:shadow-[0_6px_24px_rgba(26,92,184,.45)]"
-            >
-              Khám phá ngay <i className="fas fa-arrow-right"></i>
-            </Link>
-            <Link
-              href="/hosting"
-              className="bg-white text-[#0045b3] border-[1.5px] border-[#d1d5db] px-[20px] lg:px-[30px] py-[11px] lg:py-[13px] rounded-lg font-semibold text-[14px] lg:text-[15px] transition-all hover:border-blue-primary hover:text-blue-primary hover:shadow-[0_2px_10px_rgba(26,92,184,.15)]"
-            >
-              Xem gói hosting
-            </Link>
-          </div>
+  useEffect(() => {
+    if (items.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const interval = window.setInterval(() => setActiveIndex((current) => (current + 1) % items.length), 7000);
+    return () => window.clearInterval(interval);
+  }, [items.length]);
 
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-[12px] sm:gap-[14px] lg:gap-[24px]">
-            <div className="flex items-center gap-[10px] text-[#374151] text-[11.5px] lg:text-[13px] font-medium leading-[1.4]">
-              <span className="shrink-0 w-[36px] h-[36px] rounded-full flex items-center justify-center text-blue-primary text-[30px] shadow-[0_2px_8px_rgba(26,92,184,.12)]">
-                <i className="fas fa-award text-base"></i>
-              </span>
-              <span className="text-left">
-                Chất lượng
-                <br />
-                đảm bảo
-              </span>
-            </div>
-            <div className="flex items-center gap-[10px] text-[#374151] text-[11.5px] lg:text-[13px] font-medium leading-[1.4]">
-              <span className="shrink-0 w-[36px] h-[36px] rounded-full flex items-center justify-center text-blue-primary text-[30px] shadow-[0_2px_8px_rgba(26,92,184,.12)]">
-                <i className="fas fa-tachometer-alt text-base"></i>
-              </span>
-              <span className="text-left">
-                Tốc độ
-                <br />
-                vượt trội
-              </span>
-            </div>
-            <div className="flex items-center gap-[10px] text-[#374151] text-[11.5px] lg:text-[13px] font-medium leading-[1.4]">
-              <span className="shrink-0 w-[36px] h-[36px] rounded-full flex items-center justify-center text-blue-primary text-[30px] shadow-[0_2px_8px_rgba(26,92,184,.12)]">
-                <i className="fas fa-shield-alt text-base"></i>
-              </span>
-              <span className="text-left">
-                Bảo mật
-                <br />
-                an toàn
-              </span>
-            </div>
-            <div className="flex items-center gap-[10px] text-[#374151] text-[11.5px] lg:text-[13px] font-medium leading-[1.4]">
-              <span className="shrink-0 w-[36px] h-[36px] rounded-full flex items-center justify-center text-blue-primary text-[30px] shadow-[0_2px_8px_rgba(26,92,184,.12)]">
-                <i className="fas fa-headset text-base"></i>
-              </span>
-              <span className="text-left">
-                Hỗ trợ
-                <br />
-                24/7
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        {/* === CỘT PHẢI: ẢNH NHƯ CŨ === */}
-        <div className="w-full max-w-[500px] lg:max-w-none mx-auto lg:flex-1 lg:min-w-0">
-          <div className="relative w-full">
-            <Image
-              src="/images/banner_hero.webp"
-              alt="Giao diện dịch vụ BUYCODE.VN"
-              width={640}
-              height={480}
-              priority
-              sizes="(max-width: 1024px) 90vw, 52vw"
-              className="block h-auto w-full max-w-[640px] lg:ml-auto drop-shadow-[0_24px_48px_rgba(26,92,184,.22)] animate-heroFloat"
-            />
-          </div>
-        </div>
+  const dark = activeSlide.theme === "dark";
+  const alignment = activeSlide.content_alignment;
+  const alignClass = alignment === "center" ? "text-center items-center" : alignment === "right" ? "text-right items-end" : "text-left items-start";
+  const actionsClass = alignment === "center" ? "justify-center" : alignment === "right" ? "justify-end" : "justify-start";
+  const overlay = activeSlide.overlay_opacity / 100;
+  const select = (index: number) => setActiveIndex((index + items.length) % items.length);
+
+  const coverHeight = preview ? "min-h-[360px]" : "min-h-[500px] sm:min-h-[540px] lg:min-h-[570px]";
+  const contentHeight = preview ? "min-h-[360px] px-5 py-8" : "min-h-[500px] px-5 py-16 sm:min-h-[540px] lg:min-h-[570px] lg:py-12";
+  return <section aria-roledescription="carousel" aria-label={preview ? "Xem trước nội dung nổi bật" : "Nội dung nổi bật"} className={`relative isolate overflow-hidden ${activeSlide.layout === "cover" ? coverHeight : dark ? "bg-[#102c35]" : "bg-[#f5f8f8]"}`}>
+    {activeSlide.layout === "cover" && <><SlideImage slide={activeSlide} cover /><div className="absolute inset-0" style={{ backgroundColor: `rgba(5, 20, 27, ${overlay})` }} /></>}
+    {activeSlide.layout === "split" && <div className="absolute inset-0 opacity-35 [background-image:radial-gradient(#91a5aa_1px,transparent_1px)] [background-size:24px_24px]" aria-hidden="true" />}
+    <div className={`relative z-[1] mx-auto flex max-w-[1350px] ${activeSlide.layout === "cover" ? `${contentHeight} ${alignment === "center" ? "justify-center" : alignment === "right" ? "justify-end" : "justify-start"}` : preview ? "min-h-[360px] items-center gap-5 px-5 py-7" : "flex-col items-center gap-8 px-5 py-9 lg:min-h-[500px] lg:flex-row lg:gap-8 lg:py-12"}`}>
+      <div className={`flex flex-col ${alignClass} ${activeSlide.layout === "cover" ? "w-full max-w-2xl justify-center" : "w-full lg:w-[48%]"}`}>
+        {activeSlide.eyebrow && <span className={`mb-5 inline-flex max-w-full rounded px-3 py-1.5 text-xs font-bold uppercase ${dark || activeSlide.layout === "cover" ? "bg-white/15 text-white ring-1 ring-white/25" : "bg-[#dcefed] text-[#0d6260]"}`}>{activeSlide.eyebrow}</span>}
+        <h1 className={`max-w-[760px] font-extrabold leading-[1.12] ${preview ? "text-3xl" : "text-4xl sm:text-5xl lg:text-[56px]"} ${dark || activeSlide.layout === "cover" ? "text-white" : "text-[#112f3a]"}`}>{activeSlide.title}</h1>
+        {activeSlide.description && <p className={`mt-5 max-w-2xl text-base leading-7 sm:text-lg ${dark || activeSlide.layout === "cover" ? "text-white/85" : "text-[#526870]"}`}>{activeSlide.description}</p>}
+        {(activeSlide.primary_cta || activeSlide.secondary_cta) && <div className={`mt-8 flex flex-wrap gap-3 ${actionsClass}`}>{activeSlide.primary_cta && <ActionLink action={activeSlide.primary_cta} primary dark={dark || activeSlide.layout === "cover"} />}{activeSlide.secondary_cta && <ActionLink action={activeSlide.secondary_cta} dark={dark || activeSlide.layout === "cover"} />}</div>}
+        {highlights.length > 0 && <ul aria-label="Điểm nổi bật" className={`mt-8 grid w-full max-w-2xl grid-cols-2 gap-x-4 gap-y-3 ${alignment === "right" ? "self-end" : alignment === "center" ? "self-center" : "self-start"}`}>
+          {highlights.map((highlight, index) => <li key={`${highlight.icon}-${highlight.label}-${index}`} className={`flex min-w-0 items-center gap-2 text-sm font-semibold ${alignment === "right" ? "justify-end" : alignment === "center" ? "justify-center" : "justify-start"} ${dark || activeSlide.layout === "cover" ? "text-white/90" : "text-[#35535d]"}`}>
+            <span className={`flex size-8 shrink-0 items-center justify-center rounded-full ${dark || activeSlide.layout === "cover" ? "bg-white/15 text-white" : "bg-[#dcefed] text-[#0d6260]"}`}><i className={`fas ${highlight.icon}`} aria-hidden="true" /></span>
+            <span>{highlight.label}</span>
+          </li>)}
+        </ul>}
       </div>
-    </section>
-  );
+      {activeSlide.layout === "split" && <div className={preview ? "h-[260px] min-w-0 flex-1" : "h-[260px] w-full sm:h-[340px] lg:h-[420px] lg:min-w-0 lg:flex-1"}><SlideImage slide={activeSlide} /></div>}
+    </div>
+    {items.length > 1 && <div className="absolute inset-x-0 bottom-4 z-[2] mx-auto flex max-w-[1350px] items-center justify-center gap-3 px-5 lg:justify-end">
+      <button type="button" aria-label="Slide trước" onClick={() => select(safeActiveIndex - 1)} className={`size-9 rounded-full border ${dark || activeSlide.layout === "cover" ? "border-white/40 bg-black/20 text-white" : "border-[#b8c8cc] bg-white text-[#174452]"}`}><i className="fas fa-chevron-left text-xs" aria-hidden="true" /></button>
+      <div className="flex gap-2">{items.map((slide, index) => <button key={slide.id} type="button" aria-label={`Hiển thị slide ${index + 1}`} aria-current={index === safeActiveIndex ? "true" : undefined} onClick={() => select(index)} className={`h-2.5 rounded-full transition-[width,background-color] ${index === safeActiveIndex ? "w-7 bg-[#23a39d]" : dark || activeSlide.layout === "cover" ? "w-2.5 bg-white/60" : "w-2.5 bg-[#9aabad]"}`} />)}</div>
+      <button type="button" aria-label="Slide tiếp theo" onClick={() => select(safeActiveIndex + 1)} className={`size-9 rounded-full border ${dark || activeSlide.layout === "cover" ? "border-white/40 bg-black/20 text-white" : "border-[#b8c8cc] bg-white text-[#174452]"}`}><i className="fas fa-chevron-right text-xs" aria-hidden="true" /></button>
+    </div>}
+  </section>;
 }

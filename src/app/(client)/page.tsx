@@ -2,6 +2,7 @@ import HeroSection from "@/components/client/features/HeroSection";
 import dynamic from "next/dynamic";
 import SearchBar from "@/components/client/features/CustomDevBar";
 import ServicesSection from "@/components/client/features/ServicesSection";
+import { getHomePresentationSlides } from "@/services/server/presentationService";
 
 const FeaturedProducts = dynamic(
   () => import("@/components/client/features/FeaturedProducts"),
@@ -9,6 +10,10 @@ const FeaturedProducts = dynamic(
 );
 const HostingPlans = dynamic(
   () => import("@/components/client/features/HostingPlans"),
+  { loading: () => <SectionSkeleton /> },
+);
+const HomeVpsPlans = dynamic(
+  () => import("@/components/client/features/HomeVpsPlans"),
   { loading: () => <SectionSkeleton /> },
 );
 
@@ -23,14 +28,16 @@ function SectionSkeleton() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const slides = await getHomePresentationSlides();
   return (
     <>
-      <HeroSection />
+      <HeroSection slides={slides} />
       <SearchBar />
       <ServicesSection />
       <FeaturedProducts />
       <HostingPlans />
+      <HomeVpsPlans />
     </>
   );
 }

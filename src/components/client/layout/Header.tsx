@@ -1,16 +1,34 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useDialogAccessibility } from "@/hooks/useDialogAccessibility";
 import { useAuthStore } from "@/stores/authStore";
 import { useAuthLogic } from "@/hooks/useAuthLogic";
 import { financeService } from "@/services/client/financeService";
 import { formatCurrency } from "@/lib/format";
+import type { NavigationItem } from "@/types/navigation";
+import { DEFAULT_SITE_SETTINGS, type SiteSettings } from "@/types/site-settings";
 
-export default function Header() {
+const defaultItems: NavigationItem[] = [
+  { id: -1, label: "Trang chủ", url: "/", icon: null, target: "_self", children: [] },
+  { id: -2, label: "Mã nguồn", url: "/source-code", icon: null, target: "_self", children: [] },
+  { id: -3, label: "Hosting", url: "/hosting", icon: null, target: "_self", children: [] },
+  { id: -4, label: "VPS", url: "/vps", icon: null, target: "_self", children: [] },
+  { id: -5, label: "Tên miền", url: "/domains", icon: null, target: "_self", children: [] },
+];
+
+const isActive = (pathname: string, url: string | null) => Boolean(url && (url === "/" ? pathname === "/" : pathname.startsWith(url)));
+
+function MenuLink({ item, className, onClick }: { item: NavigationItem; className: string; onClick?: () => void }) {
+  const content = <>{item.icon && <i className={`fas ${item.icon} w-4 text-center`} aria-hidden="true" />}{item.label}</>;
+  if (!item.url) return <button type="button" onClick={onClick} className={className}>{content}</button>;
+  return <Link href={item.url} target={item.target} rel={item.target === "_blank" ? "noopener noreferrer" : undefined} onClick={onClick} className={className}>{content}</Link>;
+}
+
+export default function Header({ items = defaultItems, settings = DEFAULT_SITE_SETTINGS }: { items?: NavigationItem[]; settings?: SiteSettings }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [walletSnapshot, setWalletSnapshot] = useState<{ userId: number; balance: string } | null>(null);
@@ -66,36 +84,19 @@ export default function Header() {
               href="/"
               className="flex items-center justify-center relative w-[130px] h-[38px] md:h-[50px]"
             >
-              <Image
-                src="/images/logoweb.png"
-                alt="Logo BuyCode.vn"
-                width={130}
-                height={50}
-                priority
-                className="h-full object-contain"
-              />
+              <img src={settings.logo_url ?? "/images/logoweb.png"} alt={`Logo ${settings.site_name}`} className="h-full w-full object-contain" />
             </Link>
           </div>
 
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center gap-1">
-            <Link href="/" className={`px-[13px] py-2 text-[14px] font-semibold border-b-2 transition-colors ${pathname === "/" ? "text-blue-primary border-blue-primary" : "text-[#2d3748] border-transparent hover:text-blue-primary"}`}>
-              Trang chủ
-            </Link>
-            <div className="relative group">
-              <Link href="/source-code" className={`px-[13px] py-2 text-[14px] font-medium hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors flex items-center gap-1 ${pathname.startsWith("/source-code") ? "text-blue-primary" : "text-[#2d3748]"}`}>
-                Mã nguồn <i className="fas fa-chevron-down text-[10px]"></i>
-              </Link>
-            </div>
-            <Link href="/hosting" className={`px-[13px] py-2 text-[14px] font-medium hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors ${pathname.startsWith("/hosting") ? "text-blue-primary" : "text-[#2d3748]"}`}>
-              Hosting
-            </Link>
-            <Link href="/vps" className={`px-[13px] py-2 text-[14px] font-medium hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors ${pathname.startsWith("/vps") ? "text-blue-primary" : "text-[#2d3748]"}`}>
-              VPS
-            </Link>
-            <Link href="/domains" className={`px-[13px] py-2 text-[14px] font-medium hover:text-blue-primary hover:bg-[#eef4ff] rounded-md transition-colors ${pathname.startsWith("/domains") ? "text-blue-primary" : "text-[#2d3748]"}`}>
-              Tên miền
-            </Link>
+            {items.map((item) => <div key={item.id} className="group relative">
+              <div className={`flex items-center rounded-md transition-colors hover:bg-[#eef4ff] ${isActive(pathname, item.url) || item.children.some((child) => isActive(pathname, child.url)) ? "text-blue-primary" : "text-[#2d3748]"}`}>
+                <MenuLink item={item} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold" />
+                {item.children.length > 0 && <i className="fas fa-chevron-down -ml-1 mr-3 text-[9px] transition-transform group-hover:rotate-180" aria-hidden="true" />}
+              </div>
+              {item.children.length > 0 && <div className="invisible absolute left-0 top-full z-50 min-w-56 translate-y-1 border border-[#dce3e5] bg-white py-1 opacity-0 shadow-[0_12px_30px_rgba(17,47,58,.15)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">{item.children.map((child) => <MenuLink key={child.id} item={child} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium hover:bg-[#eef4f4] hover:text-[#116966] ${isActive(pathname, child.url) ? "bg-[#e5f2f0] text-[#116966]" : "text-[#40545d]"}`} />)}</div>}
+            </div>)}
           </nav>
 
           {/* Actions */}
@@ -199,13 +200,7 @@ export default function Header() {
           className={`absolute top-0 left-0 w-[285px] h-full bg-white flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(.4,0,.2,1)] shadow-[4px_0_30px_rgba(0,0,0,.18)] z-[1] ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
           <div className="flex items-center justify-between p-[14px_18px] border-b border-gray-border bg-[#f9fafb]">
-            <Image
-              src="/images/logoweb.png"
-              alt="Logo BuyCode.vn"
-              width={130}
-              height={40}
-              className="h-[40px]"
-            />
+            <img src={settings.logo_url ?? "/images/logoweb.png"} alt={`Logo ${settings.site_name}`} className="h-10 w-[130px] object-contain" />
             <button
               className="w-[34px] h-[34px] bg-white border-[1.5px] border-gray-border rounded-lg flex items-center justify-center text-[15px] text-[#6b7280] cursor-pointer hover:bg-red-50 hover:text-red-500 hover:border-red-300 transition-colors"
               onClick={() => setIsMenuOpen(false)}
@@ -216,21 +211,7 @@ export default function Header() {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2">
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname === "/" ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "border-transparent text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
-              Trang chủ
-            </Link>
-            <Link href="/source-code" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname.startsWith("/source-code") ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "text-[#374151] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
-              Mã nguồn <i className="fas fa-chevron-right text-[11px] text-[#9ca3af]"></i>
-            </Link>
-            <Link href="/hosting" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname.startsWith("/hosting") ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "text-[#374151] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
-              Hosting
-            </Link>
-            <Link href="/vps" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname.startsWith("/vps") ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "text-[#374151] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
-              VPS
-            </Link>
-            <Link href="/domains" onClick={() => setIsMenuOpen(false)} className={`flex items-center justify-between p-[13px_20px] text-[14.5px] font-medium border-l-[3px] transition-colors ${pathname.startsWith("/domains") ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "text-[#374151] border-transparent hover:bg-[#f0f6ff] hover:text-blue-primary hover:border-blue-primary"}`}>
-              Tên miền
-            </Link>
+            {items.map((item) => <div key={item.id} className="border-b border-[#edf1f2] last:border-0"><MenuLink item={item} onClick={item.url ? () => setIsMenuOpen(false) : undefined} className={`flex w-full items-center gap-2 border-l-[3px] px-5 py-3 text-left text-[14.5px] font-semibold transition-colors ${isActive(pathname, item.url) ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "border-transparent text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary"}`} />{item.children.length > 0 && <div className="bg-[#f8fafb] py-1">{item.children.map((child) => <MenuLink key={child.id} item={child} onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-2 py-2.5 pl-10 pr-5 text-sm ${isActive(pathname, child.url) ? "font-semibold text-[#116966]" : "text-[#60727a]"}`} />)}</div>}</div>)}
           </nav>
 
           <div className="p-[16px_18px] border-t border-gray-border bg-gray-50">
