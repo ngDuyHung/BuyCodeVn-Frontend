@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getApiBaseUrl } from "@/config/env";
+import { getServerApiBaseUrl } from "@/config/server-runtime";
 
 interface DownloadRouteContext {
   params: Promise<{ id: string }>;
@@ -30,7 +30,7 @@ export async function GET(
 
   try {
     const response = await fetch(
-      `${getApiBaseUrl()}/v1/catalog/products/${id}/download`,
+      `${getServerApiBaseUrl()}/v1/catalog/products/${id}/download`,
       {
         cache: "no-store",
         headers: {

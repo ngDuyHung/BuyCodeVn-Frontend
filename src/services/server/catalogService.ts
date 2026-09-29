@@ -1,15 +1,15 @@
 import { cache } from "react";
-import { getApiBaseUrl } from "@/config/env";
+import { getServerApiBaseUrl, PUBLIC_DATA_REVALIDATE_SECONDS, SERVER_API_TIMEOUT_MS } from "@/config/server-runtime";
 import type { ApiResource } from "@/types/api";
 import type { Product } from "@/types/catalog";
 
 export const getPublicProduct = cache(async (idOrSlug: string) => {
   const response = await fetch(
-    `${getApiBaseUrl()}/v1/catalog/products/${encodeURIComponent(idOrSlug)}`,
+    `${getServerApiBaseUrl()}/v1/catalog/products/${encodeURIComponent(idOrSlug)}`,
     {
       headers: { Accept: "application/json" },
-      next: { revalidate: 60 },
-      signal: AbortSignal.timeout(10000),
+      next: { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: ["public-catalog"] },
+      signal: AbortSignal.timeout(SERVER_API_TIMEOUT_MS),
     },
   );
 

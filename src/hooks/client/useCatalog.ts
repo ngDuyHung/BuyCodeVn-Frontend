@@ -5,7 +5,11 @@ import { normalizeApiError } from "@/lib/api-error";
 import type { PaginationMeta } from "@/types/api";
 import type { CatalogQuery, Category, Product } from "@/types/catalog";
 
-export const useCatalog = (initialParams: CatalogQuery = {}) => {
+export const useCatalog = (
+  initialParams: CatalogQuery = {},
+  options: { loadCategories?: boolean } = {},
+) => {
+  const loadCategories = options.loadCategories ?? true;
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
@@ -15,6 +19,7 @@ export const useCatalog = (initialParams: CatalogQuery = {}) => {
   const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
+    if (!loadCategories) return;
     const controller = new AbortController();
 
     const fetchCategories = async () => {
@@ -29,7 +34,7 @@ export const useCatalog = (initialParams: CatalogQuery = {}) => {
 
     void fetchCategories();
     return () => controller.abort();
-  }, [requestKey]);
+  }, [loadCategories, requestKey]);
 
   useEffect(() => {
     const controller = new AbortController();

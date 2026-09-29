@@ -41,6 +41,9 @@ export default function SourceCodeCatalog({
     params,
   } = useCatalog(initialParams);
   const [searchInput, setSearchInput] = useState(initialParams.search ?? "");
+  const [mobileColumns, setMobileColumns] = useState<1 | 2>(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const productGridClass = `grid gap-3 sm:grid-cols-2 sm:gap-[18px] lg:grid-cols-3 xl:grid-cols-4 ${mobileColumns === 2 ? "grid-cols-2" : "grid-cols-1"}`;
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -93,7 +96,9 @@ export default function SourceCodeCatalog({
         </div>
 
         <div className="flex flex-col items-start gap-6 lg:flex-row">
-          <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-[280px]">
+          <aside className="w-full shrink-0 lg:w-[280px]">
+            <button type="button" aria-expanded={filtersOpen} aria-controls="catalog-filters" onClick={() => setFiltersOpen((open) => !open)} className="flex h-11 w-full items-center justify-between rounded-md border border-[#cbd6d8] bg-white px-4 text-sm font-bold text-[#35535d] shadow-sm lg:hidden"><span><i className="fas fa-sliders mr-2 text-[#116966]" aria-hidden="true" />Tìm kiếm và bộ lọc</span><i className={`fas fa-chevron-down text-xs transition-transform ${filtersOpen ? "rotate-180" : ""}`} aria-hidden="true" /></button>
+            <div id="catalog-filters" className={`${filtersOpen ? "mt-3 grid" : "hidden"} gap-4 lg:mt-0 lg:flex lg:flex-col lg:gap-5`}>
             <section className="rounded-lg border border-gray-border bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,.04)]">
               <h2 className="mb-3 text-[15px] font-bold text-blue-nav">Tìm kiếm</h2>
               <form onSubmit={handleSearch} className="relative">
@@ -159,6 +164,7 @@ export default function SourceCodeCatalog({
                 ))}
               </div>
             </fieldset>
+            </div>
           </aside>
 
           <main className="w-full min-w-0 flex-1">
@@ -166,7 +172,12 @@ export default function SourceCodeCatalog({
               <p className="text-sm text-text-muted">
                 Tìm thấy <strong className="text-blue-nav">{meta?.total ?? 0}</strong> kết quả
               </p>
-              {(params.search || params.category_id || params.type) && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center rounded-md border border-[#cbd6d8] p-0.5 sm:hidden" aria-label="Số sản phẩm mỗi hàng">
+                  <button type="button" title="Một sản phẩm mỗi hàng" aria-label="Hiển thị một sản phẩm mỗi hàng" aria-pressed={mobileColumns === 1} onClick={() => setMobileColumns(1)} className={`flex size-8 items-center justify-center rounded ${mobileColumns === 1 ? "bg-[#116966] text-white" : "text-[#60727a]"}`}><i className="fas fa-square" aria-hidden="true" /></button>
+                  <button type="button" title="Hai sản phẩm mỗi hàng" aria-label="Hiển thị hai sản phẩm mỗi hàng" aria-pressed={mobileColumns === 2} onClick={() => setMobileColumns(2)} className={`flex size-8 items-center justify-center rounded ${mobileColumns === 2 ? "bg-[#116966] text-white" : "text-[#60727a]"}`}><i className="fas fa-table-cells-large" aria-hidden="true" /></button>
+                </div>
+                {(params.search || params.category_id || params.type) && (
                 <button
                   type="button"
                   onClick={clearFilters}
@@ -174,7 +185,8 @@ export default function SourceCodeCatalog({
                 >
                   Xóa bộ lọc
                 </button>
-              )}
+                )}
+              </div>
             </div>
 
             {error ? (
@@ -182,7 +194,7 @@ export default function SourceCodeCatalog({
                 <ErrorState message={error} onRetry={retry} />
               </div>
             ) : isLoading ? (
-              <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" role="status" aria-label="Đang tải sản phẩm">
+              <div className={productGridClass} role="status" aria-label="Đang tải sản phẩm">
                 {Array.from({ length: 8 }).map((_, index) => (
                   <div key={index} className="overflow-hidden rounded-lg border border-gray-border bg-white animate-pulse">
                     <div className="aspect-[16/9] bg-gray-200" />
@@ -207,7 +219,7 @@ export default function SourceCodeCatalog({
                 />
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className={productGridClass}>
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

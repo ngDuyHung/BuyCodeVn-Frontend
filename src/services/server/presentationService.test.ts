@@ -8,7 +8,7 @@ describe("server presentation service", () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true, data: [{ id: 1, title: "Hero" }] }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
     await expect(getHomePresentationSlides()).resolves.toEqual([{ id: 1, title: "Hero" }]);
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/v1/presentation-slides?placement=home_hero"), expect.objectContaining({ next: { revalidate: 60 } }));
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/v1/presentation-slides?placement=home_hero"), expect.objectContaining({ next: expect.objectContaining({ revalidate: 60 }) }));
   });
 
   it("uses an empty collection as a safe fallback when backend fails", async () => {

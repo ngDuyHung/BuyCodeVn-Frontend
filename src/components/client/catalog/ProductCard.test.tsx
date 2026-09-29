@@ -42,4 +42,12 @@ describe("ProductCard", () => {
       "/images/demo_product.webp",
     );
   });
+
+  it("renders the richer featured variant with safe demo and detail actions", () => {
+    render(<ProductCard product={product} variant="featured" />);
+
+    expect(screen.getByText("Giá sản phẩm")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: `Xem demo ${product.title}` })).toHaveAttribute("href", product.demo_url);
+    expect(screen.getByRole("link", { name: `Xem chi tiết ${product.title}` })).toHaveAttribute("href", "/source-code/laravel-shop");
+  });
 });

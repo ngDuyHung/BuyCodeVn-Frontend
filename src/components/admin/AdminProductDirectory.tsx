@@ -20,6 +20,7 @@ import AdminConfirmDialog from "./AdminConfirmDialog";
 import AdminDataTable from "./AdminDataTable";
 import AdminFilterBar from "./AdminFilterBar";
 import AdminFormField from "./AdminFormField";
+import RichTextEditor from "./RichTextEditor";
 
 const typeLabels: Record<ProductType, string> = { source_code: "Mã nguồn", template: "Template", script: "Script", plugin: "Plugin", other: "Khác" };
 const flattenCategories = (items: Category[], depth = 0): Array<Category & { depth: number }> => items.flatMap((item) => [{ ...item, depth }, ...flattenCategories(item.children ?? [], depth + 1)]);
@@ -51,13 +52,13 @@ function ProductDialog({ product, categories, busy, fieldErrors, onClose, onSubm
   };
   const errorFor = (field: string) => fieldErrors[field]?.map((message) => <span key={message} className="mt-1 block text-xs text-red-600">{message}</span>);
   return <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="product-dialog-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
-    <form onSubmit={submit} className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-md bg-white p-5 shadow-xl">
+    <form onSubmit={submit} className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-md bg-white p-5 shadow-xl">
       <div className="flex items-start justify-between"><div><h2 id="product-dialog-title" className="text-lg font-bold">{product ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}</h2><p className="mt-1 text-sm text-[#60727a]">Slug do backend tạo. Đường dẫn file hiện tại không được API trả lại.</p></div><button type="button" aria-label="Đóng" onClick={onClose} disabled={busy} className="size-8"><i className="fas fa-xmark" aria-hidden="true" /></button></div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-semibold">Danh mục<select required value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] bg-white px-3 font-normal"><option value="">Chọn danh mục</option>{categoryOptions.map((category) => <option key={category.id} value={category.id}>{"— ".repeat(category.depth)}{category.name}{category.is_active ? "" : " (đã ẩn)"}</option>)}</select>{errorFor("category_id")}</label>
         <label className="text-sm font-semibold">Loại<select value={type} onChange={(e) => setType(e.target.value as ProductType)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] bg-white px-3 font-normal">{PRODUCT_TYPES.map((value) => <option key={value} value={value}>{typeLabels[value]}</option>)}</select>{errorFor("type")}</label>
         <label className="text-sm font-semibold sm:col-span-2">Tiêu đề<input autoFocus required maxLength={255} value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] px-3 font-normal" />{errorFor("title")}</label>
-        <label className="text-sm font-semibold sm:col-span-2">Mô tả<textarea rows={5} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full rounded border border-[#cbd6d8] px-3 py-2 font-normal" />{errorFor("description")}</label>
+        <div className="text-sm font-semibold sm:col-span-2"><div className="flex items-center justify-between gap-3"><span>Mô tả chi tiết</span><span className="text-xs font-normal text-[#60727a]">Hỗ trợ nội dung HTML có định dạng</span></div><RichTextEditor value={description} onChange={setDescription} disabled={busy} />{errorFor("description")}</div>
         <label className="text-sm font-semibold">Giá bán<input required type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] px-3 font-normal" />{errorFor("price")}</label>
         <label className="flex items-end gap-2 pb-2 text-sm font-semibold"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> Hoạt động</label>
         <label className="text-sm font-semibold sm:col-span-2">URL ảnh đại diện<input type="url" maxLength={2048} value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] px-3 font-normal" />{errorFor("thumbnail_url")}</label>

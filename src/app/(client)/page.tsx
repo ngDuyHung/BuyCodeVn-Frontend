@@ -1,38 +1,32 @@
 import HeroSection from "@/components/client/features/HeroSection";
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import SearchBar from "@/components/client/features/CustomDevBar";
 import ServicesSection from "@/components/client/features/ServicesSection";
+import { HeroSkeleton, HomeSectionSkeleton } from "@/components/client/features/HomeSkeletons";
 import { getHomePresentationSlides } from "@/services/server/presentationService";
 
 const FeaturedProducts = dynamic(
   () => import("@/components/client/features/FeaturedProducts"),
-  { loading: () => <SectionSkeleton /> },
+  { loading: () => <HomeSectionSkeleton /> },
 );
 const HostingPlans = dynamic(
   () => import("@/components/client/features/HostingPlans"),
-  { loading: () => <SectionSkeleton /> },
+  { loading: () => <HomeSectionSkeleton /> },
 );
 const HomeVpsPlans = dynamic(
   () => import("@/components/client/features/HomeVpsPlans"),
-  { loading: () => <SectionSkeleton /> },
+  { loading: () => <HomeSectionSkeleton /> },
 );
 
-function SectionSkeleton() {
-  return (
-    <div className="mx-auto min-h-72 max-w-[1350px] animate-pulse px-5 py-12" aria-hidden="true">
-      <div className="h-6 w-48 rounded bg-gray-200" />
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }, (_, index) => <div key={index} className="h-48 rounded-lg bg-gray-100" />)}
-      </div>
-    </div>
-  );
+async function HomeHero() {
+  return <HeroSection slides={await getHomePresentationSlides()} />;
 }
 
-export default async function Home() {
-  const slides = await getHomePresentationSlides();
+export default function Home() {
   return (
     <>
-      <HeroSection slides={slides} />
+      <Suspense fallback={<HeroSkeleton />}><HomeHero /></Suspense>
       <SearchBar />
       <ServicesSection />
       <FeaturedProducts />

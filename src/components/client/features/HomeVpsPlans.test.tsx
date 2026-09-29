@@ -33,15 +33,15 @@ describe("HomeVpsPlans", () => {
     ]);
   });
 
-  it("shows three public plans with responsive specs and location-inclusive pricing", async () => {
+  it("shows four public plans with responsive specs and location-inclusive pricing", async () => {
     render(<HomeVpsPlans />);
 
     expect(await screen.findByText("Cloud 2GB")).toBeInTheDocument();
     expect(screen.getByText("Cloud 4GB")).toBeInTheDocument();
     expect(screen.getByText("Cloud 8GB")).toBeInTheDocument();
-    expect(screen.queryByText("Cloud 16GB")).not.toBeInTheDocument();
-    expect(screen.getAllByText("110.000đ")).toHaveLength(3);
-    expect(screen.getAllByText("2 GB")).toHaveLength(3);
+    expect(screen.getByText("Cloud 16GB")).toBeInTheDocument();
+    expect(screen.getAllByText("110.000đ")).toHaveLength(4);
+    expect(screen.getAllByText("2 GB")).toHaveLength(4);
     expect(screen.getByRole("link", { name: /Xem tất cả cấu hình/i })).toHaveAttribute("href", "/vps");
   });
 });

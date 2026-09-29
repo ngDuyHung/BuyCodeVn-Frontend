@@ -22,50 +22,33 @@ const formatLimit = (value: number | undefined, unit = "") => value === 0
 
 export default function HostingPlanCard({ plan, onSelect }: HostingPlanCardProps) {
   const buttonClass =
-    "mt-auto inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border-[1.5px] border-blue-primary px-4 text-[13.5px] font-bold text-blue-primary transition-colors hover:bg-blue-primary hover:text-white";
+    "mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#116966] px-4 text-sm font-bold text-white transition-colors hover:bg-[#0d5957] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#116966]";
   const customFeatures = Object.entries(plan.custom_features ?? {}).slice(0, 2);
 
   return (
-    <article className="relative flex h-full min-h-[350px] flex-col rounded-lg border-[1.5px] border-[#e5e7eb] bg-white px-4 pb-[18px] pt-[22px] transition duration-200 hover:-translate-y-1 hover:border-[#c7d8f0] hover:shadow-[0_10px_30px_rgba(0,0,0,.1)] lg:px-5 lg:pb-[22px] lg:pt-[26px]">
-      <h3 className="text-[18px] font-extrabold leading-6 text-blue-nav">
-        {plan.name}
-      </h3>
-      <p className="mt-1 min-h-10 text-[12.5px] leading-5 text-text-muted">
-        Gói hosting linh hoạt cho website của bạn
-      </p>
-      <p className="mb-[18px] mt-3 text-[26px] font-extrabold leading-none text-blue-nav">
-        {formatCurrency(plan.price_per_month)}
-        <span className="ml-1 text-[12px] font-normal text-text-muted">/tháng</span>
-      </p>
-      <ul className="mb-5 flex flex-col gap-2.5">
-        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-hard-drive w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          {formatDiskQuota(plan.disk_quota)} lưu trữ
-        </li>
-        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-gauge-high w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          {formatLimit(plan.bandwidth_limit_mb, " MB")} băng thông
-        </li>
-        {plan.memory_limit_mb != null && plan.memory_limit_mb > 0 && <li className="flex items-center gap-2 text-[12.5px] text-[#374151]"><i className="fas fa-memory w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />{formatLimit(plan.memory_limit_mb, " MB")} RAM</li>}
-        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-database w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          {formatLimit(plan.max_databases)} database
-        </li>
-        <li className="flex items-center gap-2 text-[12.5px] text-[#374151]">
-          <i className="fas fa-layer-group w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" />
-          {formatLimit(plan.max_addon_domains)} addon domain
-        </li>
-        {customFeatures.map(([key, value]) => <li key={key} className="flex items-center gap-2 text-[12.5px] text-[#374151]"><i className="fas fa-circle-check w-[14px] shrink-0 text-xs text-blue-primary" aria-hidden="true" /><span><span className="font-semibold">{key}:</span> {value}</span></li>)}
-      </ul>
-      {onSelect ? (
+    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-lg border border-[#dce3e5] bg-white shadow-[0_3px_14px_rgba(18,47,58,.06)] transition duration-300 hover:-translate-y-1 hover:border-[#9fc7c3] hover:shadow-[0_14px_30px_rgba(18,47,58,.12)]">
+      <div className="border-b border-[#e3ecea] bg-[#eff7f5] px-4 py-4">
+        <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-bold uppercase text-[#14827d]">Web Hosting</p><h3 className="mt-1 truncate text-lg font-extrabold text-[#183642]" title={plan.name}>{plan.name}</h3></div><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-white text-[#116966] shadow-sm"><i className="fas fa-cloud" aria-hidden="true" /></span></div>
+      </div>
+      <div className="flex flex-1 flex-col p-4">
+        <p className="truncate text-xl font-extrabold text-[#d85d2a]">{formatCurrency(plan.price_per_month)}<span className="ml-1 text-xs font-normal text-[#718289]">/ tháng</span></p>
+        <dl className="mt-4 grid grid-cols-2 gap-2.5">
+          <div className="rounded-md bg-[#f6f8f9] p-2.5"><dt className="flex items-center gap-1.5 text-[11px] text-[#718289]"><i className="fas fa-hard-drive text-[#14827d]" aria-hidden="true" />Lưu trữ</dt><dd className="mt-1 truncate text-sm font-bold text-[#263d48]">{formatDiskQuota(plan.disk_quota)}</dd></div>
+          <div className="rounded-md bg-[#f6f8f9] p-2.5"><dt className="flex items-center gap-1.5 text-[11px] text-[#718289]"><i className="fas fa-gauge-high text-[#14827d]" aria-hidden="true" />Băng thông</dt><dd className="mt-1 truncate text-sm font-bold text-[#263d48]">{formatLimit(plan.bandwidth_limit_mb, " MB")}</dd></div>
+          <div className="rounded-md bg-[#f6f8f9] p-2.5"><dt className="flex items-center gap-1.5 text-[11px] text-[#718289]"><i className="fas fa-memory text-[#14827d]" aria-hidden="true" />RAM</dt><dd className="mt-1 truncate text-sm font-bold text-[#263d48]">{plan.memory_limit_mb == null ? "Theo máy chủ" : formatLimit(plan.memory_limit_mb, " MB")}</dd></div>
+          <div className="rounded-md bg-[#f6f8f9] p-2.5"><dt className="flex items-center gap-1.5 text-[11px] text-[#718289]"><i className="fas fa-database text-[#14827d]" aria-hidden="true" />Database</dt><dd className="mt-1 truncate text-sm font-bold text-[#263d48]">{formatLimit(plan.max_databases)}</dd></div>
+        </dl>
+        <div className="mt-3 space-y-2 border-b border-[#e8edef] pb-3 text-xs"><div className="flex items-center justify-between gap-3"><span className="text-[#718289]"><i className="fas fa-layer-group mr-1.5 text-[#14827d]" aria-hidden="true" />Addon domain</span><strong className="text-[#354f59]">{formatLimit(plan.max_addon_domains)}</strong></div>{customFeatures.map(([key, value]) => <div key={key} className="flex items-center justify-between gap-3"><span className="truncate text-[#718289]"><i className="fas fa-circle-check mr-1.5 text-[#14827d]" aria-hidden="true" />{key}</span><strong className="truncate text-right text-[#354f59]">{value}</strong></div>)}</div>
+        <div className="mt-auto pt-1">{onSelect ? (
         <button type="button" onClick={() => onSelect(plan)} className={buttonClass}>
-          Đăng ký ngay
+          Đăng ký ngay<i className="fas fa-arrow-right text-[10px]" aria-hidden="true" />
         </button>
       ) : (
         <Link href={`/hosting?plan=${plan.id}`} className={buttonClass}>
-          Đăng ký ngay
+          Đăng ký ngay<i className="fas fa-arrow-right text-[10px]" aria-hidden="true" />
         </Link>
-      )}
+      )}</div>
+      </div>
     </article>
   );
 }

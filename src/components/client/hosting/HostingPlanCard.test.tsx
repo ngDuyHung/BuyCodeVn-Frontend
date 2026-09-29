@@ -20,10 +20,10 @@ describe("HostingPlanCard", () => {
     render(<HostingPlanCard plan={plan} />);
 
     expect(screen.getByRole("heading", { name: plan.name })).toBeInTheDocument();
-    expect(screen.getByText("1 GB lưu trữ")).toBeInTheDocument();
-    expect(screen.getByText("10.240 MB băng thông")).toBeInTheDocument();
-    expect(screen.getByText("512 MB RAM")).toBeInTheDocument();
-    expect(screen.getByText(/backup:/)).toBeInTheDocument();
+    expect(screen.getByText("1 GB")).toBeInTheDocument();
+    expect(screen.getByText("10.240 MB")).toBeInTheDocument();
+    expect(screen.getByText("512 MB")).toBeInTheDocument();
+    expect(screen.getByText("backup")).toBeInTheDocument();
     expect(screen.getByText(/20\.000/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Đăng ký ngay" })).toHaveAttribute(
       "href",
@@ -42,6 +42,6 @@ describe("HostingPlanCard", () => {
 
   it("renders zero disk quota as unlimited", () => {
     render(<HostingPlanCard plan={{ ...plan, disk_quota: 0 }} />);
-    expect(screen.getByText("Không giới hạn lưu trữ")).toBeInTheDocument();
+    expect(screen.getByText("Không giới hạn")).toBeInTheDocument();
   });
 });
