@@ -4,7 +4,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 import NetworkStatus from "@/components/providers/NetworkStatus";
+import SiteCodeInjector from "@/components/providers/SiteCodeInjector";
 import { getSiteSettings } from "@/services/server/siteSettingService";
+import { Suspense } from "react";
+
+async function SiteCustomCode() {
+  const settings = await getSiteSettings();
+  return <SiteCodeInjector headerHtml={settings.site_header_html} footerHtml={settings.site_footer_html} />;
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -36,6 +43,7 @@ export default function RootLayout({
         <AuthSessionProvider />
         {children}
         <ToastContainer position="bottom-right" autoClose={3000} />
+        <Suspense fallback={null}><SiteCustomCode /></Suspense>
       </body>
     </html>
   );

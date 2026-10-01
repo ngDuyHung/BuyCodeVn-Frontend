@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { createIdempotencyKey } from "@/lib/idempotency";
@@ -22,7 +23,7 @@ const copyValue = async (value: string, label: string) => {
   }
 };
 
-export default function HostingServiceActions({ service, onUpdated }: { service: UserService; onUpdated: () => void }) {
+export default function HostingServiceActions({ service, onUpdated, mode = "detail" }: { service: UserService; onUpdated: () => void; mode?: "list" | "detail" }) {
   const [panel, setPanel] = useState<ActivePanel>(null);
   const [credentials, setCredentials] = useState<HostingServiceCredentials | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -127,6 +128,18 @@ export default function HostingServiceActions({ service, onUpdated }: { service:
   return (
     <div className="mt-4 border-t border-gray-border pt-4">
       <div className="flex flex-wrap gap-2">
+        {mode === "list" ? (
+          <>
+            {service.actions.can_renew && (
+              <button type="button" onClick={() => openPanel("renew")} className="inline-flex h-9 items-center gap-2 rounded-md bg-blue-primary px-3 text-sm font-bold text-white hover:bg-[#154ea0]">
+                <i className="fas fa-rotate" aria-hidden="true" /> Gia hạn nhanh
+              </button>
+            )}
+            <Link href={`/user/hosting/${service.id}`} className="inline-flex h-9 items-center gap-2 rounded-md border border-gray-border px-3 text-sm font-semibold text-[#475569] hover:border-blue-primary hover:text-blue-primary">
+              <i className="fas fa-arrow-right" aria-hidden="true" /> Xem chi tiết
+            </Link>
+          </>
+        ) : <>
         {service.status === "active" && service.provisioning_mode === "automatic" && (
           <button type="button" disabled={isOpeningCpanel} onClick={openCpanel} className="inline-flex h-9 items-center gap-2 rounded-md border border-emerald-600 px-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50">
             <i className={`fas ${isOpeningCpanel ? "fa-spinner fa-spin" : "fa-arrow-up-right-from-square"}`} aria-hidden="true" /> {isOpeningCpanel ? "Đang mở cPanel..." : "Đăng nhập cPanel"}
@@ -147,6 +160,7 @@ export default function HostingServiceActions({ service, onUpdated }: { service:
             <i className="fas fa-rotate" aria-hidden="true" /> Gia hạn
           </button>
         )}
+        </>}
       </div>
 
       {!panel && error && <p role="alert" className="mt-3 text-sm font-medium text-red-600">{error}</p>}

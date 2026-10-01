@@ -51,9 +51,16 @@ export interface BuyHostingPayload {
   domain: string;
   months: HostingMonths;
   coupon_code?: string;
+  idempotency_key?: string;
 }
 
-export type HostingPurchaseStatus = "success" | "pending_manual";
+export type HostingPurchaseStatus = "success" | "pending" | "pending_manual";
+
+export interface HostingDomainAvailability {
+  domain: string;
+  available: boolean;
+  message: string;
+}
 
 export interface BuyHostingResult {
   status: HostingPurchaseStatus;

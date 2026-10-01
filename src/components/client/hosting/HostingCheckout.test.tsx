@@ -11,7 +11,7 @@ vi.mock("@/services/client/financeService", () => ({
 }));
 
 vi.mock("@/services/client/orderService", () => ({
-  orderService: { previewCoupon: vi.fn(), buyHosting: vi.fn() },
+  orderService: { previewCoupon: vi.fn(), buyHosting: vi.fn(), checkHostingDomain: vi.fn() },
 }));
 
 const plan = {
@@ -33,6 +33,9 @@ describe("HostingCheckout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(financeService.getWallet).mockResolvedValue(wallet);
+    vi.mocked(orderService.checkHostingDomain).mockImplementation(async (domain) => ({
+      domain: domain.toLowerCase(), available: true, message: "Tên miền có thể đăng ký hosting.",
+    }));
     useAuthStore.setState({
       token: null,
       user: null,
@@ -55,6 +58,13 @@ describe("HostingCheckout", () => {
     useAuthStore.setState({ isAuthenticated: true, isSessionReady: true });
     render(<HostingCheckout plan={plan} onClose={vi.fn()} />);
 
+    fireEvent.change(screen.getByLabelText("Tên miền sử dụng"), { target: { value: "not a domain" } });
+    fireEvent.click(screen.getByRole("button", { name: /kiểm tra tên miền/i }));
+    expect(await screen.findByText(/tên miền không hợp lệ/i)).toBeInTheDocument();
+    expect(orderService.checkHostingDomain).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByPlaceholderText("example.com"), { target: { value: "example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: /kiểm tra tên miền/i }));
     await screen.findByText("5.000.000đ");
     const cycle = screen.getByLabelText("Chu kỳ");
     const expectedTotals = new Map([
@@ -71,21 +81,16 @@ describe("HostingCheckout", () => {
       expect(screen.getAllByText(total).length).toBeGreaterThan(0);
     }
 
-    fireEvent.change(screen.getByLabelText("Tên miền sử dụng"), {
-      target: { value: "not a domain" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /xác nhận đăng ký/i }));
-    expect(await screen.findByText(/tên miền không hợp lệ/i)).toBeInTheDocument();
     expect(orderService.buyHosting).not.toHaveBeenCalled();
   });
 
-  it("submits normalized data and shows automatic provisioning success", async () => {
+  it("submits normalized data and shows automatic provisioning pending", async () => {
     useAuthStore.setState({ isAuthenticated: true, isSessionReady: true });
     vi.mocked(orderService.buyHosting).mockResolvedValue({
       success: true,
       message: "Created",
       data: {
-        status: "success",
+        status: "pending",
         order_id: 20,
         service_id: 10,
         domain: "example.com",
@@ -93,21 +98,25 @@ describe("HostingCheckout", () => {
     });
     render(<HostingCheckout plan={plan} onClose={vi.fn()} />);
 
-    await screen.findByText("5.000.000đ");
     fireEvent.change(screen.getByLabelText("Tên miền sử dụng"), {
       target: { value: "HTTPS://Example.COM/" },
     });
+    fireEvent.click(screen.getByRole("button", { name: /kiểm tra tên miền/i }));
+    await screen.findByText("5.000.000đ");
     fireEvent.change(screen.getByLabelText("Chu kỳ"), {
       target: { value: "3" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /xác nhận đăng ký/i }));
+    fireEvent.click(screen.getByRole("button", { name: /thanh toán và tạo hosting/i }));
 
-    await screen.findByText(/hosting đã được kích hoạt thành công/i);
-    expect(orderService.buyHosting).toHaveBeenCalledWith({
+    await screen.findByText(/thanh toán thành công, hosting đang được cấp phát/i);
+    expect(orderService.buyHosting).toHaveBeenCalledWith(expect.objectContaining({
       hosting_plan_id: 1,
       domain: "example.com",
       months: 3,
-    });
+      idempotency_key: expect.stringMatching(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      ),
+    }));
     expect(screen.queryByText(/mật khẩu/i)).not.toBeInTheDocument();
   });
 
@@ -125,17 +134,18 @@ describe("HostingCheckout", () => {
     });
     render(<HostingCheckout plan={plan} onClose={vi.fn()} />);
 
-    await screen.findByText("5.000.000đ");
     fireEvent.change(screen.getByLabelText("Tên miền sử dụng"), {
       target: { value: "manual.example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /xác nhận đăng ký/i }));
+    fireEvent.click(screen.getByRole("button", { name: /kiểm tra tên miền/i }));
+    await screen.findByText("5.000.000đ");
+    fireEvent.click(screen.getByRole("button", { name: /thanh toán và tạo hosting/i }));
 
     expect(
-      await screen.findByText(/yêu cầu hosting đang chờ kích hoạt/i),
+      await screen.findByText(/thanh toán thành công, hosting đang được cấp phát/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/đang được xử lý thủ công/i)).toBeInTheDocument();
-    expect(screen.getByText(/thông tin đăng nhập chỉ có sau/i)).toBeInTheDocument();
+    expect(screen.getByText(/đang chờ kỹ thuật viên kích hoạt thủ công/i)).toBeInTheDocument();
+    expect(screen.getByText(/thông tin đăng nhập chỉ xuất hiện sau/i)).toBeInTheDocument();
   });
 
   it("keeps the backend refund message and refreshes the wallet", async () => {
@@ -145,11 +155,12 @@ describe("HostingCheckout", () => {
     );
     render(<HostingCheckout plan={plan} onClose={vi.fn()} />);
 
-    await screen.findByText("5.000.000đ");
     fireEvent.change(screen.getByLabelText("Tên miền sử dụng"), {
       target: { value: "example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /xác nhận đăng ký/i }));
+    fireEvent.click(screen.getByRole("button", { name: /kiểm tra tên miền/i }));
+    await screen.findByText("5.000.000đ");
+    fireEvent.click(screen.getByRole("button", { name: /thanh toán và tạo hosting/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("hoàn lại");
     await waitFor(() => expect(financeService.getWallet).toHaveBeenCalledTimes(2));

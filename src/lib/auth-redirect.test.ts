@@ -9,8 +9,13 @@ describe("getSafeReturnUrl", () => {
   });
 
   it("falls back for external and protocol-relative URLs", () => {
-    expect(getSafeReturnUrl("?returnUrl=https://example.com")).toBe("/user");
-    expect(getSafeReturnUrl("?returnUrl=//example.com")).toBe("/user");
-    expect(getSafeReturnUrl("")).toBe("/user");
+    expect(getSafeReturnUrl("?returnUrl=https://example.com")).toBe("/");
+    expect(getSafeReturnUrl("?returnUrl=//example.com")).toBe("/");
+    expect(getSafeReturnUrl("")).toBe("/");
+  });
+
+  it("prevents redirect loops back to guest-only pages", () => {
+    expect(getSafeReturnUrl("?returnUrl=%2Flogin")).toBe("/");
+    expect(getSafeReturnUrl("?returnUrl=%2Fregister%3Ffrom%3Dlogin")).toBe("/");
   });
 });

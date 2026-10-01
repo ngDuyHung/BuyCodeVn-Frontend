@@ -153,16 +153,14 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
                     </div>
                   )}
                 </div>
-              ) : (
-                isSessionReady && (
-                  <Link
-                    href="/login"
-                    className="bg-blue-primary hover:bg-[#154ea0] text-white px-[22px] py-[9px] rounded-lg text-[14px] font-semibold transition-transform hover:-translate-y-[1px] whitespace-nowrap"
-                  >
-                    Đăng nhập / Đăng ký
-                  </Link>
-                )
-              )}
+              ) : isSessionReady ? (
+                <Link
+                  href="/login"
+                  className="bg-blue-primary hover:bg-[#154ea0] text-white px-[22px] py-[9px] rounded-lg text-[14px] font-semibold transition-transform hover:-translate-y-[1px] whitespace-nowrap"
+                >
+                  Đăng nhập / Đăng ký
+                </Link>
+              ) : <div className="skeleton-shimmer h-10 w-[152px] rounded-lg" role="status" aria-label="Đang kiểm tra phiên đăng nhập" />}
             </div>
 
             {/* Hamburger Button */}
@@ -244,17 +242,15 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
                   Đăng xuất
                 </button>
               </div>
-            ) : (
-              isSessionReady && (
-                <Link
-                  href="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-center bg-blue-primary hover:bg-[#154ea0] text-white py-2.5 rounded-lg text-[14px] font-semibold transition-transform"
-                >
-                  Đăng nhập / Đăng ký
-                </Link>
-              )
-            )}
+            ) : isSessionReady ? (
+              <Link
+                href="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full text-center bg-blue-primary hover:bg-[#154ea0] text-white py-2.5 rounded-lg text-[14px] font-semibold transition-transform"
+              >
+                Đăng nhập / Đăng ký
+              </Link>
+            ) : <div className="skeleton-shimmer h-10 w-full rounded-lg" role="status" aria-label="Đang kiểm tra phiên đăng nhập" />}
           </div>
         </div>
       </div>

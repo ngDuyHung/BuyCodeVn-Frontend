@@ -11,6 +11,7 @@ import type {
   BuyDomainResult,
   BuyHostingPayload,
   BuyHostingResult,
+  HostingDomainAvailability,
   BuyVpsPayload,
   BuyVpsResult,
   ChangeHostingPasswordPayload,
@@ -109,6 +110,15 @@ export const orderService = {
       { suppressErrorToast: true },
     );
     return response.data;
+  },
+
+  checkHostingDomain: async (domain: string, signal?: AbortSignal) => {
+    const response = await api.post<ApiResource<HostingDomainAvailability>>(
+      "/v1/orders/hosting/check-domain",
+      { domain },
+      { signal, suppressErrorToast: true },
+    );
+    return response.data.data;
   },
 
   buyVps: async (payload: BuyVpsPayload) => {

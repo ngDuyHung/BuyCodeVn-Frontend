@@ -1802,6 +1802,8 @@ Cấu hình thương hiệu, SEO mặc định và liên hệ. API này dùng wh
     "site_email": "support@buycode.vn",
     "site_telegram": "",
     "site_copyright": "© {year} BUYCODE.VN. All rights reserved.",
+    "site_header_html": "",
+    "site_footer_html": "",
     "favicon_url": null,
     "logo_url": null,
     "footer_logo_url": null,
@@ -1817,7 +1819,7 @@ Cấu hình thương hiệu, SEO mặc định và liên hệ. API này dùng wh
 | GET | `/api/v1/admin/site-settings` | `settings.view` | Đọc cấu hình website an toàn |
 | POST | `/api/v1/admin/site-settings` | `settings.manage` | JSON cho text hoặc multipart khi upload ảnh |
 
-Update gửi đầy đủ các field `site_*`. Ảnh gồm `favicon`, `logo`, `footer_logo`, `admin_logo`; dùng `remove_favicon`, `remove_logo`, `remove_footer_logo`, `remove_admin_logo` để xóa file hiện tại. Favicon nhận PNG/ICO tối đa 1 MB; logo nhận JPG/PNG/WebP tối đa 3 MB. Copyright hỗ trợ placeholder `{year}`.
+Update gửi đầy đủ các field `site_*`. `site_header_html` và `site_footer_html` nhận tối đa 15.000 ký tự mỗi trường, dùng để chèn CSS, JavaScript, analytics hoặc livechat trên toàn website. Đây là mã tin cậy chỉ người có quyền `settings.manage` được phép cập nhật; frontend không được chạy nội dung trong màn hình chỉnh sửa. Ảnh gồm `favicon`, `logo`, `footer_logo`, `admin_logo`; dùng `remove_favicon`, `remove_logo`, `remove_footer_logo`, `remove_admin_logo` để xóa file hiện tại. Favicon nhận PNG/ICO tối đa 1 MB; logo nhận JPG/PNG/WebP tối đa 3 MB. Copyright hỗ trợ placeholder `{year}`.
 
 ## Roles Và Permissions Seed
 

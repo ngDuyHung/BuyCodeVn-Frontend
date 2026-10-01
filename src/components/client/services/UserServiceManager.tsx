@@ -55,7 +55,7 @@ export default function UserServiceManager({ serviceType }: { serviceType: UserS
 
                   {service.pending_renewal && <div className="mt-4 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-800"><strong>Đang chờ gia hạn thủ công.</strong> Yêu cầu #{service.pending_renewal.id}{service.pending_renewal.years ? ` · ${service.pending_renewal.years} năm` : ""}</div>}
 
-                  {isHosting ? <HostingServiceActions service={service} onUpdated={retry} /> : <DomainServiceActions service={service} onUpdated={retry} />}
+                  {isHosting ? <HostingServiceActions service={service} onUpdated={retry} mode="list" /> : <DomainServiceActions service={service} onUpdated={retry} />}
                 </article>
               );
             })}

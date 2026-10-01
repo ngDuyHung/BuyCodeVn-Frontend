@@ -12,6 +12,7 @@ export interface Server {
   type: ServerType;
   provisioning_mode: ProvisioningMode;
   login_url: string | null;
+  nameservers?: string[];
   api_username: string;
   api_auth_type: ServerAuthType;
   api_port: number;
@@ -29,6 +30,7 @@ export interface ServerWritePayload {
   type: ServerType;
   provisioning_mode: ProvisioningMode;
   login_url: string | null;
+  nameservers: string[];
   api_username: string;
   api_auth_type: ServerAuthType;
   api_token?: string | null;
@@ -211,7 +213,34 @@ export interface UserServiceActions {
   can_change_password: boolean;
   can_view_credentials: boolean;
   can_manage_vps?: boolean;
+  can_upgrade?: boolean;
+  can_reset?: boolean;
+  can_terminate?: boolean;
 }
+
+export interface HostingUpgradeOption {
+  id: number;
+  name: string;
+  price_per_month: MoneyString;
+  disk_quota: number;
+  bandwidth_limit_mb: number;
+  memory_limit_mb: number | null;
+  upgrade_fee: MoneyString;
+}
+
+export interface HostingInfrastructure {
+  server_name: string | null;
+  server_host: string | null;
+  ip_address: string | null;
+  login_url: string | null;
+  nameservers: string[];
+  provider_plan: string | null;
+  synced: boolean;
+  warning: string | null;
+}
+
+export type HostingPlanSummary = Pick<HostingPlan, "id" | "name" | "price_per_month"> &
+  Partial<Pick<HostingPlan, "disk_quota" | "bandwidth_limit_mb" | "memory_limit_mb">>;
 
 export type VpsBillingCycle = string;
 
@@ -269,18 +298,21 @@ export interface UserService {
   starts_at?: string | null;
   expires_at: string | null;
   provisioning_mode?: "automatic" | "manual" | null;
+  username?: string | null;
   provisioned_at?: string | null;
   created_at: string;
   updated_at?: string;
   actions: UserServiceActions;
   pending_renewal?: PendingRenewal | null;
-  hosting_plan?: Pick<HostingPlan, "id" | "name" | "price_per_month"> | null;
-  plan?: Pick<HostingPlan, "id" | "name" | "price_per_month"> | null;
+  hosting_plan?: HostingPlanSummary | null;
+  plan?: HostingPlanSummary | null;
   tld_pricing?: Pick<TldPricing, "id" | "tld" | "renew_price"> | null;
   order?: { id: number; status: string } | null;
   vps?: VpsInstance | null;
-  service?: { id: number; name: string; cpu?: number; ram_mb?: number; disk_gb?: number } | null;
+  service?: ({ id: number; name: string; cpu?: number; ram_mb?: number; disk_gb?: number } & Partial<HostingPlan>) | null;
   vps_plan?: Pick<VpsPlan, "id" | "name" | "pricing"> | null;
+  hosting_details?: HostingInfrastructure | null;
+  upgrade_options?: HostingUpgradeOption[];
 }
 
 export interface AdminUserServiceActions extends UserServiceActions {
@@ -297,6 +329,9 @@ export interface AdminUserService extends Omit<UserService, "actions"> {
     login_url: string | null;
     provisioned_at: string | null;
     provisioned_by: number | null;
+    last_synced_at: string | null;
+    provider_last_error: string | null;
+    lifecycle_attempts: number;
   } | null;
   actions: AdminUserServiceActions;
 }

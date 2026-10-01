@@ -6,6 +6,7 @@ import { useDialogAccessibility } from "@/hooks/useDialogAccessibility";
 import { normalizeApiError } from "@/lib/api-error";
 import { formatCurrency } from "@/lib/format";
 import { isMoneyLessThan, multiplyMoney } from "@/lib/money";
+import { createIdempotencyKey } from "@/lib/idempotency";
 import { isValidDomain, normalizeDomain } from "@/lib/validation";
 import { financeService } from "@/services/client/financeService";
 import { orderService } from "@/services/client/orderService";
@@ -35,6 +36,9 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [domainError, setDomainError] = useState<string | null>(null);
+  const [verifiedDomain, setVerifiedDomain] = useState<string | null>(null);
+  const [isCheckingDomain, setIsCheckingDomain] = useState(false);
+  const [purchaseKey] = useState(() => createIdempotencyKey("hosting-buy", plan.id));
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [purchaseResult, setPurchaseResult] = useState<BuyHostingResult | null>(null);
@@ -96,10 +100,38 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
     }
   };
 
+  const handleCheckDomain = async () => {
+    const normalizedDomain = normalizeDomain(domain);
+    if (!isValidDomain(normalizedDomain)) {
+      setDomainError("Tên miền không hợp lệ, ví dụ: example.com.");
+      return;
+    }
+    setIsCheckingDomain(true);
+    setDomainError(null);
+    setVerifiedDomain(null);
+    try {
+      const result = await orderService.checkHostingDomain(normalizedDomain);
+      if (!result.available) {
+        setDomainError(result.message);
+        return;
+      }
+      setDomain(result.domain);
+      setVerifiedDomain(result.domain);
+    } catch (requestError) {
+      setDomainError(normalizeApiError(requestError).message);
+    } finally {
+      setIsCheckingDomain(false);
+    }
+  };
+
   const handleSubmit = async () => {
     const normalizedDomain = normalizeDomain(domain);
     if (!isValidDomain(normalizedDomain)) {
       setDomainError("Tên miền không hợp lệ, ví dụ: example.com.");
+      return;
+    }
+    if (verifiedDomain !== normalizedDomain) {
+      setDomainError("Vui lòng kiểm tra lại tên miền trước khi thanh toán.");
       return;
     }
     if (isSubmitting || hasUnappliedCoupon || hasInsufficientBalance) return;
@@ -112,6 +144,7 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
         hosting_plan_id: plan.id,
         domain: normalizedDomain,
         months,
+        idempotency_key: purchaseKey,
         ...(appliedCoupon ? { coupon_code: appliedCoupon } : {}),
       });
       setPurchaseResult(response.data);
@@ -181,14 +214,16 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
           </div>
         ) : purchaseResult ? (
           <div className="p-6">
-            {purchaseResult.status === "pending_manual" ? (
+            {purchaseResult.status !== "success" ? (
               <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
                 <i className="fas fa-clock mt-0.5" aria-hidden="true" />
                 <div>
-                  <h3 className="font-bold">Yêu cầu hosting đang chờ kích hoạt</h3>
+                  <h3 className="font-bold">Thanh toán thành công, hosting đang được cấp phát</h3>
                   <p className="mt-1 text-sm">Tên miền: {purchaseResult.domain}</p>
                   <p className="mt-2 text-sm">
-                    Đơn hàng đang được xử lý thủ công. Thông tin đăng nhập chỉ có sau khi hosting được kích hoạt.
+                    {purchaseResult.status === "pending_manual"
+                      ? "Đơn hàng đang chờ kỹ thuật viên kích hoạt thủ công."
+                      : "Hệ thống đang tạo account trên máy chủ. Bạn có thể theo dõi trạng thái trong Quản lý hosting."} Thông tin đăng nhập chỉ xuất hiện sau khi hosting được kích hoạt.
                   </p>
                 </div>
               </div>
@@ -202,8 +237,8 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
               </div>
             )}
             <div className="mt-5 flex justify-end gap-3">
-              <Link href="/user/orders" className="inline-flex h-10 items-center rounded-md border border-gray-border px-4 text-sm font-semibold text-[#475569] hover:bg-gray-50">
-                Xem đơn hàng
+              <Link href={`/user/hosting/${purchaseResult.service_id}`} className="inline-flex h-10 items-center rounded-md border border-gray-border px-4 text-sm font-semibold text-[#475569] hover:bg-gray-50">
+                Quản lý hosting
               </Link>
               <button type="button" onClick={onClose} className="h-10 rounded-md bg-blue-primary px-4 text-sm font-bold text-white hover:bg-[#154ea0]">
                 Hoàn tất
@@ -219,6 +254,7 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
                 onChange={(event) => {
                   setDomain(event.target.value);
                   setDomainError(null);
+                  setVerifiedDomain(null);
                 }}
                 placeholder="example.com"
                 autoComplete="url"
@@ -227,6 +263,16 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
               {domainError && <span className="mt-1 block text-xs text-red-600">{domainError}</span>}
             </label>
 
+            <div className="flex items-center justify-between gap-3">
+              <p className={`text-sm ${verifiedDomain ? "font-semibold text-emerald-700" : "text-text-muted"}`}>
+                {verifiedDomain ? <><i className="fas fa-circle-check mr-2" aria-hidden="true" />Tên miền có thể đăng ký hosting</> : "Kiểm tra tên miền trước khi chọn chu kỳ và thanh toán."}
+              </p>
+              <button type="button" disabled={isCheckingDomain || !domain.trim()} onClick={handleCheckDomain} className="h-10 shrink-0 rounded-md border border-blue-primary px-4 text-sm font-bold text-blue-primary disabled:opacity-50">
+                {isCheckingDomain ? "Đang kiểm tra..." : verifiedDomain ? "Kiểm tra lại" : "Kiểm tra tên miền"}
+              </button>
+            </div>
+
+            {verifiedDomain && <>
             <label className="block text-sm font-semibold text-[#334155]">
               Chu kỳ
               <select
@@ -275,9 +321,10 @@ export default function HostingCheckout({ plan, onClose }: HostingCheckoutProps)
               <button type="button" onClick={onClose} disabled={isSubmitting} className="h-10 rounded-md border border-gray-border px-4 text-sm font-semibold text-[#475569] hover:bg-gray-50">Hủy</button>
               <button type="button" onClick={handleSubmit} disabled={isSubmitting || hasUnappliedCoupon || hasInsufficientBalance} className="inline-flex h-10 min-w-36 items-center justify-center gap-2 rounded-md bg-orange-main px-4 text-sm font-bold text-white hover:bg-orange-dark disabled:opacity-50">
                 {isSubmitting && <i className="fas fa-spinner fa-spin" aria-hidden="true" />}
-                {isSubmitting ? "Đang tạo hosting" : "Xác nhận đăng ký"}
+                {isSubmitting ? "Đang thanh toán" : "Thanh toán và tạo hosting"}
               </button>
             </div>
+            </>}
           </div>
         )}
       </div>

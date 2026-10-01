@@ -9,6 +9,8 @@ export interface SiteSettings {
   site_email: string;
   site_telegram: string;
   site_copyright: string;
+  site_header_html: string;
+  site_footer_html: string;
   favicon_url: string | null;
   logo_url: string | null;
   footer_logo_url: string | null;
@@ -37,6 +39,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   site_email: "support@buycode.vn",
   site_telegram: "",
   site_copyright: "© {year} BUYCODE.VN. All rights reserved.",
+  site_header_html: "",
+  site_footer_html: "",
   favicon_url: null,
   logo_url: null,
   footer_logo_url: null,

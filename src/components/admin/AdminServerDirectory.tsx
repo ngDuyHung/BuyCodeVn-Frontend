@@ -35,6 +35,7 @@ function ServerDialog({ server, busy, fieldErrors, onClose, onSubmit }: {
   const [type, setType] = useState<ServerType>(server?.type ?? "whm");
   const [mode, setMode] = useState<ProvisioningMode>(server?.provisioning_mode ?? "automatic");
   const [loginUrl, setLoginUrl] = useState(server?.login_url ?? "");
+  const [nameservers, setNameservers] = useState((server?.nameservers ?? []).join("\n"));
   const [apiUsername, setApiUsername] = useState(server?.api_username ?? "root");
   const [authType, setAuthType] = useState<ServerAuthType>(server?.api_auth_type ?? "token");
   const [apiSecret, setApiSecret] = useState("");
@@ -57,6 +58,7 @@ function ServerDialog({ server, busy, fieldErrors, onClose, onSubmit }: {
     onSubmit({
       name: name.trim(), ip_address: host.trim(), type, provisioning_mode: mode,
       login_url: loginUrl.trim() || null, api_username: apiUsername.trim(), api_auth_type: authType,
+      nameservers: nameservers.split(/[\n,]+/).map((value) => value.trim().toLowerCase()).filter(Boolean),
       api_port: Number(apiPort), verify_tls: verifyTls, connect_timeout: Number(connectTimeout),
       request_timeout: Number(requestTimeout), is_active: active,
       ...(!server || apiSecret ? { api_token: apiSecret || null } : {}),
@@ -73,6 +75,7 @@ function ServerDialog({ server, busy, fieldErrors, onClose, onSubmit }: {
         <label className="text-sm font-semibold">Loại panel<select value={type} onChange={(event) => changeType(event.target.value as ServerType)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] bg-white px-3 font-normal">{serverTypes.map((value) => <option key={value} value={value}>{typeLabels[value]}</option>)}</select>{errorFor("type")}</label>
         <label className="text-sm font-semibold">Chế độ cấp phát<select value={mode} onChange={(event) => setMode(event.target.value as ProvisioningMode)} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] bg-white px-3 font-normal"><option value="automatic">Tự động</option><option value="manual">Thủ công</option></select>{errorFor("provisioning_mode")}</label>
         <label className="text-sm font-semibold">URL đăng nhập khách hàng<input type="url" maxLength={2048} value={loginUrl} onChange={(event) => setLoginUrl(event.target.value)} placeholder={type === "whm" ? "https://panel.example.com:2083" : "https://panel.example.com"} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] px-3 font-normal" />{errorFor("login_url")}</label>
+        <label className="text-sm font-semibold sm:col-span-2">Nameserver dự phòng<textarea rows={3} value={nameservers} onChange={(event) => setNameservers(event.target.value)} placeholder={"ns1.example.com\nns2.example.com"} className="mt-1 w-full rounded border border-[#cbd6d8] px-3 py-2 font-normal" />{errorFor("nameservers")}{errorFor("nameservers.0")}<span className="mt-1 block text-xs font-normal text-[#60727a]">Mỗi dòng một nameserver, tối đa 4. Dùng khi WHM không trả về nameserver.</span></label>
         {type !== "mock" && <>
           <div className="sm:col-span-2 border-t border-[#dbe3e5] pt-4"><h3 className="text-sm font-bold text-[#334155]">Xác thực API</h3></div>
           <label className="text-sm font-semibold">Tài khoản API<input required={needsCredentials} maxLength={100} value={apiUsername} onChange={(event) => setApiUsername(event.target.value)} placeholder={type === "whm" ? "root hoặc reseller" : "admin"} className="mt-1 h-10 w-full rounded border border-[#cbd6d8] px-3 font-normal" />{errorFor("api_username")}</label>

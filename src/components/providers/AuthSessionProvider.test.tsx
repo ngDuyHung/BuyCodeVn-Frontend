@@ -19,6 +19,7 @@ const user = { id: 1, name: "Customer", email: "customer@example.com", is_active
 describe("AuthSessionProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState({}, "", "/");
     navigation.pathname = "/user/orders";
     useAuthStore.setState({ token: "token", user: null, expiresAt: Date.now() + 604800000, isAuthenticated: true, hasHydrated: true, isSessionReady: false });
   });
@@ -28,15 +29,26 @@ describe("AuthSessionProvider", () => {
     render(<AuthSessionProvider />);
 
     await waitFor(() => expect(useAuthStore.getState().user).toEqual(user));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(authService.getMe).toHaveBeenCalledTimes(1);
     expect(setAuthTokenCookie).toHaveBeenCalledWith("token", expect.any(Number));
     expect(useAuthStore.getState().isSessionReady).toBe(true);
   });
 
+  it("renders a cached user immediately while verification is pending", async () => {
+    useAuthStore.setState({ user, isSessionReady: false });
+    vi.mocked(authService.getMe).mockReturnValue(new Promise(() => undefined));
+    render(<AuthSessionProvider />);
+
+    await waitFor(() => expect(useAuthStore.getState().isSessionReady).toBe(true));
+  });
+
   it("clears and redirects an expired protected session", async () => {
+    window.history.replaceState({}, "", "/?status=pending");
     useAuthStore.setState({ expiresAt: Date.now() - 1 });
     render(<AuthSessionProvider />);
 
-    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/login?returnUrl=%2Fuser%2Forders"));
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/login?returnUrl=%2Fuser%2Forders%3Fstatus%3Dpending"));
     expect(clearAuthTokenCookie).toHaveBeenCalled();
     expect(useAuthStore.getState().token).toBeNull();
     expect(authService.getMe).not.toHaveBeenCalled();

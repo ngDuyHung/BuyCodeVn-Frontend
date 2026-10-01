@@ -11,6 +11,13 @@ vi.mock("@/components/client/layout/Header", () => ({
 vi.mock("@/components/client/layout/Footer", () => ({
   default: () => <footer data-testid="footer" />,
 }));
+vi.mock("@/components/auth/GuestOnlyBoundary", () => ({
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+vi.mock("@/components/auth/AuthSiteChrome", () => ({
+  AuthHeader: () => <><div data-testid="top-bar" /><header data-testid="header" /></>,
+  AuthFooter: () => <footer data-testid="footer" />,
+}));
 vi.mock("@/services/server/navigationService", () => ({ getNavigationMenus: vi.fn().mockResolvedValue(null) }));
 vi.mock("@/services/server/siteSettingService", () => ({ getSiteSettings: vi.fn().mockResolvedValue({}) }));
 

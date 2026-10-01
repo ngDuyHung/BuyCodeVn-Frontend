@@ -44,4 +44,18 @@ describe("authStore", () => {
       isAuthenticated: false,
     });
   });
+
+  it("marks the UI ready as soon as persisted auth has hydrated", async () => {
+    useAuthStore.setState({ hasHydrated: false, isSessionReady: false });
+    localStorage.setItem("auth-storage", JSON.stringify({ state: {
+      token: null, user: null, expiresAt: null, isAuthenticated: false,
+    }, version: 0 }));
+
+    await useAuthStore.persist.rehydrate();
+
+    expect(useAuthStore.getState()).toMatchObject({
+      hasHydrated: true,
+      isSessionReady: true,
+    });
+  });
 });

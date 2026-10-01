@@ -31,10 +31,14 @@ export default function AuthSessionProvider() {
         clearAuthTokenCookie();
         setSessionReady(true);
         if (pathname.startsWith("/user") || pathname.startsWith("/admin")) {
-          router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+          const destination = `${pathname}${window.location.search}`;
+          router.replace(`/login?returnUrl=${encodeURIComponent(destination)}`);
         }
         return;
       }
+
+      // Render the persisted session immediately and verify it in the background.
+      if (useAuthStore.getState().user) setSessionReady(true);
 
       try {
         const remainingSeconds = expiresAt
@@ -72,7 +76,7 @@ export default function AuthSessionProvider() {
     const handleUnauthorized = () => {
       const returnUrl = pathname.startsWith("/login")
         ? ""
-        : `?returnUrl=${encodeURIComponent(pathname)}`;
+        : `?returnUrl=${encodeURIComponent(`${pathname}${window.location.search}`)}`;
       router.replace(`/login${returnUrl}`);
     };
 
