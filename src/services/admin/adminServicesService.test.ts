@@ -31,7 +31,7 @@ describe("adminServicesService", () => {
 
   it("uses the canonical admin hosting-plan write route", async () => {
     vi.mocked(api.post).mockResolvedValue({ data: { data: { id: 9 } } });
-    await adminServicesService.createHostingPlan({ server_id: 1, name: "Basic", whm_package_name: "basic", disk_quota: 1024, bandwidth_limit_mb: 10240, memory_limit_mb: null, max_ftp_accounts: 0, max_email_accounts: 0, max_databases: 0, max_subdomains: 0, max_parked_domains: 0, max_addon_domains: 0, custom_features: {}, price_per_month: "50000.00", is_active: true });
+    await adminServicesService.createHostingPlan({ server_id: 1, name: "Basic", whm_package_name: "basic", disk_quota: 1024, bandwidth_limit_mb: 10240, memory_limit_mb: null, max_ftp_accounts: 0, max_email_accounts: 0, max_databases: 0, max_subdomains: 0, max_parked_domains: 0, max_addon_domains: 0, custom_features: {}, price_per_month: "50000.00", display_order: 10, is_active: true });
     expect(api.post).toHaveBeenCalledWith("/v1/admin/services/hosting-plans", expect.objectContaining({ whm_package_name: "basic" }), expect.anything());
   });
 

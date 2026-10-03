@@ -45,7 +45,7 @@ const localPlan = {
   disk_quota: 2048, bandwidth_limit_mb: 20480, memory_limit_mb: 1024,
   max_ftp_accounts: 5, max_email_accounts: 10, max_databases: 10,
   max_subdomains: 5, max_parked_domains: 2, max_addon_domains: 2,
-  custom_features: { backup: "Hàng ngày" }, price_per_month: "99000.00",
+  custom_features: { backup: "Hàng ngày" }, price_per_month: "99000.00", display_order: 10,
   is_active: true, provider_available: true, provider_synced_at: "2026-09-27T00:00:00Z",
   created_at: "2026-09-27T00:00:00Z", server,
 };

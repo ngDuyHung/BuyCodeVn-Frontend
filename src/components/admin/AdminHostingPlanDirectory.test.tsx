@@ -28,7 +28,7 @@ const plan = {
   bandwidth_limit_mb: 5120, memory_limit_mb: 512, max_ftp_accounts: 2, max_email_accounts: 5,
   max_databases: 5, max_subdomains: 2, max_parked_domains: 1, max_addon_domains: 1,
   custom_features: { backup: "Hàng ngày" },
-  price_per_month: "50000.00", is_active: false, provider_available: false,
+  price_per_month: "50000.00", display_order: 30, is_active: false, provider_available: false,
   provider_synced_at: "2026-09-26T10:00:00Z", created_at: "2026-09-26T00:00:00Z", server,
 };
 const meta = { current_page: 1, from: 1, last_page: 1, path: "", per_page: 15, to: 1, total: 1 };
@@ -66,12 +66,14 @@ describe("AdminHostingPlanDirectory", () => {
     await waitFor(() => expect(packageSelect).toHaveTextContent("reseller_basic"));
     fireEvent.change(packageSelect, { target: { value: "reseller_basic" } });
     fireEvent.change(screen.getByLabelText("Dung lượng (MB)"), { target: { value: "8192" } });
+    fireEvent.change(screen.getByLabelText("Thứ tự hiển thị"), { target: { value: "10" } });
     fireEvent.click(screen.getByLabelText("Băng thông (MB): Không giới hạn"));
     fireEvent.click(screen.getByRole("button", { name: "Lưu gói hosting" }));
 
     await waitFor(() => expect(adminServicesService.updateHostingPlan).toHaveBeenCalledWith(5, expect.objectContaining({
       disk_quota: 8192,
       bandwidth_limit_mb: 0,
+      display_order: 10,
       whm_package_name: "reseller_basic",
     })));
   });

@@ -40,7 +40,7 @@ export default function HostingPlanCard({ plan, onSelect }: HostingPlanCardProps
         <div className="mt-5 flex items-end gap-1 border-b border-[#e8edef] pb-5"><strong className="min-w-0 truncate text-[28px] font-black leading-none text-blue-nav">{formatCurrency(plan.price_per_month)}</strong><span className="shrink-0 text-xs text-[#718289]">/tháng</span></div>
       </div>
       <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
-        <dl className="space-y-3">
+        <dl className="space-y-3 pb-5">
           {features.map((feature) => <div key={feature.label} className="flex items-center gap-3 text-sm"><dt className="flex min-w-0 flex-1 items-center gap-2 text-[#60727a]"><span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[var(--color-blue-primary-soft)] text-[11px] text-blue-primary"><i className={`fas ${feature.icon}`} aria-hidden="true" /></span><span className="truncate">{feature.label}</span></dt><dd className="max-w-[48%] truncate text-right font-bold text-[#263d48]" title={feature.value}>{feature.value}</dd></div>)}
         </dl>
         <div className="mt-auto border-t border-[#e8edef] pt-5">{onSelect ? (

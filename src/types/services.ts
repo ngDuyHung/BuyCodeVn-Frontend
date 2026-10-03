@@ -129,6 +129,7 @@ export interface HostingPlan {
   max_addon_domains?: number;
   custom_features?: HostingCustomFeatures;
   price_per_month: MoneyString;
+  display_order?: number;
 }
 
 export interface AdminHostingPlan extends HostingPlan {
@@ -143,6 +144,7 @@ export interface AdminHostingPlan extends HostingPlan {
   max_parked_domains: number;
   max_addon_domains: number;
   custom_features: HostingCustomFeatures;
+  display_order: number;
   is_active: boolean;
   provider_available: boolean;
   provider_synced_at: string | null;
@@ -165,6 +167,7 @@ export interface HostingPlanWritePayload {
   max_addon_domains: number;
   custom_features: HostingCustomFeatures;
   price_per_month: MoneyString;
+  display_order: number;
   is_active: boolean;
 }
 

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { financeService } from "@/services/client/financeService";
 import { useAuthStore } from "@/stores/authStore";
@@ -26,5 +26,14 @@ describe("Header wallet balance", () => {
     render(<Header items={[{ id: 10, label: "Dịch vụ", url: null, icon: "fa-server", target: "_self", children: [{ id: 11, label: "Cloud VPS", url: "/vps", icon: null, target: "_self", children: [] }] }]} />);
     expect(screen.getAllByText("Dịch vụ").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: "Cloud VPS" })[0]).toHaveAttribute("href", "/vps");
+  });
+
+  it("renders an active mobile bottom navigation and a menu shortcut", () => {
+    vi.mocked(financeService.getWallet).mockResolvedValue({ id: 1, balance: "120000.00", currency: "VND", is_active: true, updated_at: "" });
+    render(<Header />);
+
+    const navigation = screen.getByRole("navigation", { name: "Điều hướng chính trên di động" });
+    expect(within(navigation).getByRole("link", { name: "Trang chủ" })).toHaveAttribute("aria-current", "page");
+    expect(within(navigation).getByRole("button", { name: "Menu" })).toHaveAttribute("aria-controls", "mobile-navigation");
   });
 });

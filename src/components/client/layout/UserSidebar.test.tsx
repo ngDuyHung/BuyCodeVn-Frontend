@@ -29,7 +29,8 @@ describe("UserSidebar", () => {
     render(<UserSidebar />);
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng tài khoản trên di động" });
-    expect(within(mobileNavigation).getByText("Hosting")).toHaveClass("after:scale-x-100");
+    expect(within(mobileNavigation).getByRole("link", { name: /Hosting/ })).toHaveAttribute("aria-current", "page");
+    expect(within(mobileNavigation).getByText("Hosting").className).not.toContain("after:");
     fireEvent.click(within(mobileNavigation).getByRole("button", { name: "Thêm" }));
 
     const dialog = screen.getByRole("dialog", { name: "Quản lý tài khoản" });

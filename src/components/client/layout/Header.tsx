@@ -22,6 +22,16 @@ const defaultItems: NavigationItem[] = [
 
 const isActive = (pathname: string, url: string | null) => Boolean(url && (url === "/" ? pathname === "/" : pathname.startsWith(url)));
 
+const navigationIcon = (item: NavigationItem) => {
+  if (item.icon) return item.icon;
+  if (item.url === "/") return "fa-house";
+  if (item.url?.startsWith("/source-code")) return "fa-code";
+  if (item.url?.startsWith("/hosting")) return "fa-server";
+  if (item.url?.startsWith("/vps")) return "fa-cloud";
+  if (item.url?.startsWith("/domains")) return "fa-globe";
+  return "fa-compass";
+};
+
 function MenuLink({ item, className, onClick }: { item: NavigationItem; className: string; onClick?: () => void }) {
   const content = <>{item.icon && <i className={`fas ${item.icon} w-4 text-center`} aria-hidden="true" />}{item.label}</>;
   if (!item.url) return <button type="button" onClick={onClick} className={className}>{content}</button>;
@@ -33,6 +43,11 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [walletSnapshot, setWalletSnapshot] = useState<{ userId: number; balance: string } | null>(null);
   const pathname = usePathname();
+  const mobileBottomItems = items
+    .flatMap((item) => item.url ? [item] : item.children)
+    .filter((item) => item.url)
+    .slice(0, 4);
+  const showPublicBottomNavigation = !pathname.startsWith("/user");
 
   const { isAuthenticated, isSessionReady, user } = useAuthStore();
   const { logout } = useAuthLogic();
@@ -89,14 +104,14 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
           </div>
 
           {/* Navigation Desktop */}
-          <nav className="hidden md:flex items-center gap-1">
-            {items.map((item) => <div key={item.id} className="group relative">
-              <div className={`flex items-center rounded-md transition-colors hover:bg-[var(--color-blue-primary-soft)] ${isActive(pathname, item.url) || item.children.some((child) => isActive(pathname, child.url)) ? "text-blue-primary" : "text-[#2d3748]"}`}>
+          <nav className="hidden self-stretch md:flex md:items-stretch md:gap-1">
+            {items.map((item) => { const active = isActive(pathname, item.url) || item.children.some((child) => isActive(pathname, child.url)); return <div key={item.id} className={`group relative flex items-center after:absolute after:inset-x-2 after:-bottom-1.5 after:h-0.5 after:origin-center after:bg-[var(--color-blue-primary)] after:transition-transform after:duration-300 group-hover:after:scale-x-100 ${active ? "after:scale-x-100" : "after:scale-x-0"}`}>
+              <div className={`flex items-center transition-colors ${active ? "text-blue-primary" : "text-[#2d3748] group-hover:text-blue-primary"}`}>
                 <MenuLink item={item} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold" />
                 {item.children.length > 0 && <i className="fas fa-chevron-down -ml-1 mr-3 text-[9px] transition-transform group-hover:rotate-180" aria-hidden="true" />}
               </div>
               {item.children.length > 0 && <div className="invisible absolute left-0 top-full z-50 min-w-56 translate-y-1 border border-[#dce3e5] bg-white py-1 opacity-0 shadow-[0_12px_30px_rgba(17,47,58,.15)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">{item.children.map((child) => <MenuLink key={child.id} item={child} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium hover:bg-[#eef4f4] hover:text-[var(--color-blue-primary)] ${isActive(pathname, child.url) ? "bg-[#e5f2f0] text-[var(--color-blue-primary)]" : "text-[#40545d]"}`} />)}</div>}
-            </div>)}
+            </div>; })}
           </nav>
 
           {/* Actions */}
@@ -179,6 +194,13 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
         </div>
       </header>
 
+      {showPublicBottomNavigation && <nav aria-label="Điều hướng chính trên di động" className="fixed inset-x-0 bottom-0 z-[100] border-t border-[#d9e3e5] bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(15,43,71,.12)] backdrop-blur-md md:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-5">
+          {mobileBottomItems.map((item) => { const active = isActive(pathname, item.url); return <Link key={item.id} href={item.url!} target={item.target} rel={item.target === "_blank" ? "noopener noreferrer" : undefined} aria-current={active ? "page" : undefined} className={`group flex h-[66px] min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${active ? "text-[var(--color-blue-primary)]" : "text-[#6c7d84]"}`}><span className={`flex size-8 items-center justify-center rounded-md text-sm transition-colors ${active ? "bg-[var(--color-blue-primary-soft)]" : "group-active:bg-[#eef3f4]"}`}><i className={`fas ${navigationIcon(item)}`} aria-hidden="true" /></span><span className="max-w-full truncate px-1">{item.label}</span></Link>; })}
+          <button type="button" onClick={() => setIsMenuOpen(true)} aria-expanded={isMenuOpen} aria-controls="mobile-navigation" className={`group flex h-[66px] min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${isMenuOpen ? "text-[var(--color-blue-primary)]" : "text-[#6c7d84]"}`}><span className={`flex size-8 items-center justify-center rounded-md text-sm ${isMenuOpen ? "bg-[var(--color-blue-primary-soft)]" : "group-active:bg-[#eef3f4]"}`}><i className="fas fa-bars" aria-hidden="true" /></span><span>Menu</span></button>
+        </div>
+      </nav>}
+
       {/* MOBILE MENU OVERLAY & PANEL */}
       <div
         className={`fixed inset-0 z-[998] ${isMenuOpen ? "block" : "hidden"}`}
@@ -209,7 +231,7 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2">
-            {items.map((item) => <div key={item.id} className="border-b border-[#edf1f2] last:border-0"><MenuLink item={item} onClick={item.url ? () => setIsMenuOpen(false) : undefined} className={`flex w-full items-center gap-2 border-l-[3px] px-5 py-3 text-left text-[14.5px] font-semibold transition-colors ${isActive(pathname, item.url) ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "border-transparent text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary"}`} />{item.children.length > 0 && <div className="bg-[#f8fafb] py-1">{item.children.map((child) => <MenuLink key={child.id} item={child} onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-2 py-2.5 pl-10 pr-5 text-sm ${isActive(pathname, child.url) ? "font-semibold text-[var(--color-blue-primary)]" : "text-[#60727a]"}`} />)}</div>}</div>)}
+            {items.map((item) => { const active = isActive(pathname, item.url) || item.children.some((child) => isActive(pathname, child.url)); return <div key={item.id} className="border-b border-[#edf1f2] last:border-0"><MenuLink item={item} onClick={item.url ? () => setIsMenuOpen(false) : undefined} className={`flex w-full items-center gap-2 px-5 py-3 text-left text-[14.5px] font-semibold transition-colors ${active ? "bg-[#f0f6ff] text-blue-primary" : "text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary"}`} />{item.children.length > 0 && <div className="bg-[#f8fafb] py-1">{item.children.map((child) => <MenuLink key={child.id} item={child} onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-2 py-2.5 pl-10 pr-5 text-sm ${isActive(pathname, child.url) ? "font-semibold text-[var(--color-blue-primary)]" : "text-[#60727a]"}`} />)}</div>}</div>; })}
           </nav>
 
           <div className="p-[16px_18px] border-t border-gray-border bg-gray-50">
