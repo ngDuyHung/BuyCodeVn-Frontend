@@ -9,6 +9,9 @@ export interface SiteSettings {
   site_email: string;
   site_telegram: string;
   site_copyright: string;
+  site_primary_color: string;
+  site_secondary_color: string;
+  site_accent_color: string;
   site_header_html: string;
   site_footer_html: string;
   favicon_url: string | null;
@@ -39,6 +42,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   site_email: "support@buycode.vn",
   site_telegram: "",
   site_copyright: "© {year} BUYCODE.VN. All rights reserved.",
+  site_primary_color: "#1a5cb8",
+  site_secondary_color: "#0f2b47",
+  site_accent_color: "#f97316",
   site_header_html: "",
   site_footer_html: "",
   favicon_url: null,

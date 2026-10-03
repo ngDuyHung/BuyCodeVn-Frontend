@@ -161,7 +161,7 @@ export default function HostingStorefront() {
             <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
               {isLoading
                 ? Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="h-[350px] animate-pulse rounded-lg border border-gray-border bg-white p-5">
+                    <div key={index} className="h-[445px] animate-pulse rounded-lg border border-gray-border bg-white p-5">
                       <div className="h-5 w-1/2 rounded bg-gray-200" />
                       <div className="mt-3 h-4 w-4/5 rounded bg-gray-100" />
                       <div className="mt-5 h-7 w-2/3 rounded bg-gray-200" />

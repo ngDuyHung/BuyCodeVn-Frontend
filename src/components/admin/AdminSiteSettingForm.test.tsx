@@ -20,9 +20,10 @@ describe("AdminSiteSettingForm", () => {
     render(<AdminSiteSettingForm />);
     const name = await screen.findByLabelText("Tên website mặc định");
     fireEvent.change(name, { target: { value: "BuyCode mới" } });
+    fireEvent.change(screen.getByLabelText("Màu chủ đạo"), { target: { value: "#126b67" } });
     fireEvent.change(screen.getByLabelText("Chèn Script/HTML trong thẻ Header"), { target: { value: "<style>body{color:red}</style>" } });
     fireEvent.click(screen.getByRole("button", { name: /Lưu cài đặt/ }));
-    await waitFor(() => expect(adminSiteSettingService.updateSettings).toHaveBeenCalledWith(expect.objectContaining({ site_name: "BuyCode mới", site_header_html: "<style>body{color:red}</style>" })));
+    await waitFor(() => expect(adminSiteSettingService.updateSettings).toHaveBeenCalledWith(expect.objectContaining({ site_name: "BuyCode mới", site_primary_color: "#126b67", site_header_html: "<style>body{color:red}</style>" })));
   });
 
   it("renders settings read-only for a viewer", async () => {

@@ -12,7 +12,7 @@ import { vpsService } from "@/services/client/vpsService";
 import type { VpsPlan } from "@/types/services";
 
 function PlanSkeleton() {
-  return <div className="h-[330px] animate-pulse rounded-lg border border-[#dce3e5] bg-white p-5" aria-hidden="true">
+  return <div className="h-[430px] animate-pulse rounded-lg border border-[#dce3e5] bg-white p-5" aria-hidden="true">
     <div className="h-3 w-24 rounded bg-[#e7ebec]" />
     <div className="mt-3 h-6 w-36 rounded bg-[#dce3e5]" />
     <div className="mt-6 grid grid-cols-2 gap-3"><div className="h-14 rounded bg-[#f1f4f5]" /><div className="h-14 rounded bg-[#f1f4f5]" /><div className="h-14 rounded bg-[#f1f4f5]" /><div className="h-14 rounded bg-[#f1f4f5]" /></div>
@@ -48,7 +48,7 @@ export default function HomeVpsPlans() {
   return (
     <section className="bg-[#f4f7f8] py-10 md:py-12 lg:py-16" aria-labelledby="home-vps-title">
       <div className="mx-auto max-w-[1350px] px-4 md:px-5">
-        <div className="grid overflow-hidden rounded-lg bg-[#102d46] lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
+        <div className="grid overflow-hidden rounded-lg bg-[var(--color-blue-dark)] lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
           <div className="flex flex-col justify-center px-5 py-7 text-white sm:px-8 sm:py-9 lg:px-10 lg:py-10">
             <p className="text-xs font-bold uppercase text-[#f4a340]">Hạ tầng linh hoạt</p>
             <h2 id="home-vps-title" className="mt-2 max-w-2xl text-2xl font-extrabold leading-tight sm:text-3xl">VPS hiệu năng cao cho mọi quy mô</h2>

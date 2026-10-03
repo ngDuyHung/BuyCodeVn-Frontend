@@ -1802,6 +1802,9 @@ Cấu hình thương hiệu, SEO mặc định và liên hệ. API này dùng wh
     "site_email": "support@buycode.vn",
     "site_telegram": "",
     "site_copyright": "© {year} BUYCODE.VN. All rights reserved.",
+    "site_primary_color": "#1a5cb8",
+    "site_secondary_color": "#0f2b47",
+    "site_accent_color": "#f97316",
     "site_header_html": "",
     "site_footer_html": "",
     "favicon_url": null,
@@ -1819,7 +1822,7 @@ Cấu hình thương hiệu, SEO mặc định và liên hệ. API này dùng wh
 | GET | `/api/v1/admin/site-settings` | `settings.view` | Đọc cấu hình website an toàn |
 | POST | `/api/v1/admin/site-settings` | `settings.manage` | JSON cho text hoặc multipart khi upload ảnh |
 
-Update gửi đầy đủ các field `site_*`. `site_header_html` và `site_footer_html` nhận tối đa 15.000 ký tự mỗi trường, dùng để chèn CSS, JavaScript, analytics hoặc livechat trên toàn website. Đây là mã tin cậy chỉ người có quyền `settings.manage` được phép cập nhật; frontend không được chạy nội dung trong màn hình chỉnh sửa. Ảnh gồm `favicon`, `logo`, `footer_logo`, `admin_logo`; dùng `remove_favicon`, `remove_logo`, `remove_footer_logo`, `remove_admin_logo` để xóa file hiện tại. Favicon nhận PNG/ICO tối đa 1 MB; logo nhận JPG/PNG/WebP tối đa 3 MB. Copyright hỗ trợ placeholder `{year}`.
+Update gửi đầy đủ các field `site_*`. Ba field màu `site_primary_color`, `site_secondary_color`, `site_accent_color` bắt buộc dùng mã HEX 6 ký tự dạng `#1a5cb8`; frontend ánh xạ lần lượt vào màu hành động chính, nền/tiêu đề đậm và màu nhấn. `site_header_html` và `site_footer_html` nhận tối đa 15.000 ký tự mỗi trường, dùng để chèn CSS, JavaScript, analytics hoặc livechat trên toàn website. Đây là mã tin cậy chỉ người có quyền `settings.manage` được phép cập nhật; frontend không được chạy nội dung trong màn hình chỉnh sửa. Ảnh gồm `favicon`, `logo`, `footer_logo`, `admin_logo`; dùng `remove_favicon`, `remove_logo`, `remove_footer_logo`, `remove_admin_logo` để xóa file hiện tại. Favicon nhận PNG/ICO tối đa 1 MB; logo nhận JPG/PNG/WebP tối đa 3 MB. Copyright hỗ trợ placeholder `{year}`.
 
 ## Roles Và Permissions Seed
 
@@ -1851,4 +1854,4 @@ Roles:
 - Với endpoint download product, response thành công là binary stream, không phải JSON.
 - Wallet, orders và my-services đều yêu cầu Bearer token và tự scope theo user hiện tại; frontend không gửi `user_id`.
 - Admin user/role/domain/finance action nhạy cảm được ghi `activity_logs`; khóa/xóa/đổi role sẽ revoke token theo rule ở phần Identity.
-- `settings` và `support_tickets` vẫn chưa có route/module controller; đây là scope gate BE-12.
+- `support_tickets` vẫn chưa có route/module controller; đây là scope gate BE-12.

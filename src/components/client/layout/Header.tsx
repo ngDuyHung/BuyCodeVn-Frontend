@@ -91,11 +91,11 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center gap-1">
             {items.map((item) => <div key={item.id} className="group relative">
-              <div className={`flex items-center rounded-md transition-colors hover:bg-[#eef4ff] ${isActive(pathname, item.url) || item.children.some((child) => isActive(pathname, child.url)) ? "text-blue-primary" : "text-[#2d3748]"}`}>
+              <div className={`flex items-center rounded-md transition-colors hover:bg-[var(--color-blue-primary-soft)] ${isActive(pathname, item.url) || item.children.some((child) => isActive(pathname, child.url)) ? "text-blue-primary" : "text-[#2d3748]"}`}>
                 <MenuLink item={item} className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold" />
                 {item.children.length > 0 && <i className="fas fa-chevron-down -ml-1 mr-3 text-[9px] transition-transform group-hover:rotate-180" aria-hidden="true" />}
               </div>
-              {item.children.length > 0 && <div className="invisible absolute left-0 top-full z-50 min-w-56 translate-y-1 border border-[#dce3e5] bg-white py-1 opacity-0 shadow-[0_12px_30px_rgba(17,47,58,.15)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">{item.children.map((child) => <MenuLink key={child.id} item={child} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium hover:bg-[#eef4f4] hover:text-[#116966] ${isActive(pathname, child.url) ? "bg-[#e5f2f0] text-[#116966]" : "text-[#40545d]"}`} />)}</div>}
+              {item.children.length > 0 && <div className="invisible absolute left-0 top-full z-50 min-w-56 translate-y-1 border border-[#dce3e5] bg-white py-1 opacity-0 shadow-[0_12px_30px_rgba(17,47,58,.15)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">{item.children.map((child) => <MenuLink key={child.id} item={child} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium hover:bg-[#eef4f4] hover:text-[var(--color-blue-primary)] ${isActive(pathname, child.url) ? "bg-[#e5f2f0] text-[var(--color-blue-primary)]" : "text-[#40545d]"}`} />)}</div>}
             </div>)}
           </nav>
 
@@ -156,7 +156,7 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
               ) : isSessionReady ? (
                 <Link
                   href="/login"
-                  className="bg-blue-primary hover:bg-[#154ea0] text-white px-[22px] py-[9px] rounded-lg text-[14px] font-semibold transition-transform hover:-translate-y-[1px] whitespace-nowrap"
+                  className="bg-blue-primary hover:bg-[var(--color-blue-primary-hover)] text-white px-[22px] py-[9px] rounded-lg text-[14px] font-semibold transition-transform hover:-translate-y-[1px] whitespace-nowrap"
                 >
                   Đăng nhập / Đăng ký
                 </Link>
@@ -209,7 +209,7 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2">
-            {items.map((item) => <div key={item.id} className="border-b border-[#edf1f2] last:border-0"><MenuLink item={item} onClick={item.url ? () => setIsMenuOpen(false) : undefined} className={`flex w-full items-center gap-2 border-l-[3px] px-5 py-3 text-left text-[14.5px] font-semibold transition-colors ${isActive(pathname, item.url) ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "border-transparent text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary"}`} />{item.children.length > 0 && <div className="bg-[#f8fafb] py-1">{item.children.map((child) => <MenuLink key={child.id} item={child} onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-2 py-2.5 pl-10 pr-5 text-sm ${isActive(pathname, child.url) ? "font-semibold text-[#116966]" : "text-[#60727a]"}`} />)}</div>}</div>)}
+            {items.map((item) => <div key={item.id} className="border-b border-[#edf1f2] last:border-0"><MenuLink item={item} onClick={item.url ? () => setIsMenuOpen(false) : undefined} className={`flex w-full items-center gap-2 border-l-[3px] px-5 py-3 text-left text-[14.5px] font-semibold transition-colors ${isActive(pathname, item.url) ? "border-blue-primary bg-[#f0f6ff] text-blue-primary" : "border-transparent text-[#374151] hover:bg-[#f0f6ff] hover:text-blue-primary"}`} />{item.children.length > 0 && <div className="bg-[#f8fafb] py-1">{item.children.map((child) => <MenuLink key={child.id} item={child} onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-2 py-2.5 pl-10 pr-5 text-sm ${isActive(pathname, child.url) ? "font-semibold text-[var(--color-blue-primary)]" : "text-[#60727a]"}`} />)}</div>}</div>)}
           </nav>
 
           <div className="p-[16px_18px] border-t border-gray-border bg-gray-50">
@@ -246,7 +246,7 @@ export default function Header({ items = defaultItems, settings = DEFAULT_SITE_S
               <Link
                 href="/login"
                 onClick={() => setIsMenuOpen(false)}
-                className="block w-full text-center bg-blue-primary hover:bg-[#154ea0] text-white py-2.5 rounded-lg text-[14px] font-semibold transition-transform"
+                className="block w-full text-center bg-blue-primary hover:bg-[var(--color-blue-primary-hover)] text-white py-2.5 rounded-lg text-[14px] font-semibold transition-transform"
               >
                 Đăng nhập / Đăng ký
               </Link>

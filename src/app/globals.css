@@ -7,8 +7,10 @@
   --color-blue-dark: #0d2137;
   --color-blue-nav: #0f2b47;
   --color-blue-primary: #1a5cb8;
+  --color-blue-primary-hover: color-mix(in srgb, var(--color-blue-primary) 84%, black);
+  --color-blue-primary-soft: color-mix(in srgb, var(--color-blue-primary) 9%, white);
   --color-orange-main: #f97316;
-  --color-orange-dark: #ea6c0a;
+  --color-orange-dark: color-mix(in srgb, var(--color-orange-main) 86%, black);
   --color-gray-light: #f5f7fa;
   --color-gray-border: #e5e7eb;
   --color-text-muted: #64748b;

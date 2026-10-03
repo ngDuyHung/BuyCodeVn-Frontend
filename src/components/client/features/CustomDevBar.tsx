@@ -17,7 +17,7 @@ export default function CustomDevBar() {
               <i className="fas fa-laptop-code"></i>
             </div>
             <div>
-              <h2 className="text-[14.5px] font-extrabold text-[#0d2137] mb-[2px] leading-tight">
+              <h2 className="text-[14.5px] font-extrabold text-[var(--color-blue-nav)] mb-[2px] leading-tight">
                 Gia công hệ thống theo yêu cầu
               </h2>
               <p className="text-[12px] text-[#64748b] leading-tight m-0">
@@ -72,7 +72,7 @@ export default function CustomDevBar() {
           <div className="shrink-0 w-full lg:w-auto mt-[4px] lg:mt-0">
             <Link
               href="mailto:support@buycode.vn?subject=Tu%20van%20phat%20trien%20theo%20yeu%20cau"
-              className="flex items-center justify-center gap-[8px] bg-blue-primary hover:bg-[#154ea0] text-white px-[24px] py-[11px] rounded-[8px] font-bold text-[13.5px] transition-all shadow-[0_4px_14px_rgba(26,92,184,.25)] hover:-translate-y-[1px] w-full lg:w-auto group"
+              className="flex items-center justify-center gap-[8px] bg-blue-primary hover:bg-[var(--color-blue-primary-hover)] text-white px-[24px] py-[11px] rounded-[8px] font-bold text-[13.5px] transition-all shadow-[0_4px_14px_rgba(26,92,184,.25)] hover:-translate-y-[1px] w-full lg:w-auto group"
             >
               Nhận tư vấn ngay
               <i className="fas fa-arrow-right text-[12px] group-hover:translate-x-1 transition-transform"></i>

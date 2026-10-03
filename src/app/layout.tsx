@@ -5,6 +5,7 @@ import "./globals.css";
 import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 import NetworkStatus from "@/components/providers/NetworkStatus";
 import SiteCodeInjector from "@/components/providers/SiteCodeInjector";
+import { getSiteThemeStyle } from "@/lib/site-theme";
 import { getSiteSettings } from "@/services/server/siteSettingService";
 import { Suspense } from "react";
 
@@ -25,13 +26,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSiteSettings();
+
   return (
-    <html lang="vi">
+    <html lang="vi" style={getSiteThemeStyle(settings)}>
       <head>
         <link
           rel="stylesheet"
