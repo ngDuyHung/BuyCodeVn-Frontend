@@ -35,7 +35,7 @@ export default function VpsStorefront() {
         <h1 className="text-2xl font-extrabold text-blue-nav">VPS</h1>
         <p className="mt-1 text-sm text-text-muted">Chọn cấu hình, khu vực và hệ điều hành phù hợp.</p>
         {loading ? <LoadingState label="Đang tải gói VPS..." /> : error ? <ErrorState message={error} onRetry={() => { setLoading(true); setError(null); setReloadKey((key) => key + 1); }} /> : plans.length === 0 ? <EmptyState title="Chưa có gói VPS khả dụng" description="Các gói VPS đang được cập nhật." /> : (
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <div className="-mx-4 mt-7 grid snap-x snap-mandatory grid-flow-col auto-cols-[minmax(280px,84vw)] gap-4 overflow-x-auto scroll-px-4 px-4 pb-4 [scrollbar-width:none] [&>*]:snap-start [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-4 xl:gap-5">
             {plans.map((plan) => <VpsPlanCard key={plan.id} plan={plan} actionLabel={osImages.length === 0 ? "Chưa có hệ điều hành" : "Đăng ký VPS"} actionDisabled={osImages.length === 0} onAction={() => setSelectedPlan(plan)} />)}
           </div>
         )}

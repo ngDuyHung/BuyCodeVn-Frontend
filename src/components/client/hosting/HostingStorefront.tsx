@@ -158,7 +158,7 @@ export default function HostingStorefront() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
+            <div className="-mx-4 grid snap-x snap-mandatory grid-flow-col auto-cols-[minmax(280px,84vw)] items-stretch gap-4 overflow-x-auto scroll-px-4 px-4 pb-4 [scrollbar-width:none] [&>*]:snap-start [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
               {isLoading
                 ? Array.from({ length: 4 }).map((_, index) => (
                     <div key={index} className="h-[445px] animate-pulse rounded-lg border border-gray-border bg-white p-5">

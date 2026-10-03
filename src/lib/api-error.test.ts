@@ -84,7 +84,7 @@ describe("normalizeApiError", () => {
     expect(normalized.status).toBe(500);
     expect(normalized.requestId).toBe("vps-failed-request");
     expect(normalized.message).not.toContain("SQLSTATE");
-    expect(normalized.message).toBe("Lỗi máy chủ, vui lòng thử lại sau.");
+    expect(normalized.message).toBe("Lỗi máy chủ, vui lòng thử lại sau. Mã yêu cầu: vps-failed-request");
     expect(normalized.fieldErrors).toEqual({});
   });
 });

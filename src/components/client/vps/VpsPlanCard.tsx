@@ -33,7 +33,7 @@ export default function VpsPlanCard({ plan, actionHref, actionLabel, actionDisab
       <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-[11px] font-bold uppercase tracking-wide text-blue-primary">{plan.group_name || "Cloud VPS"}</p><h2 className="mt-1 truncate text-xl font-extrabold text-blue-nav" title={plan.name}>{plan.name}</h2></div><span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-[var(--color-blue-primary-soft)] text-lg text-blue-primary"><i className="fas fa-server" aria-hidden="true" /></span></div>
       <div className="mt-5 border-b border-[#e8edef] pb-5"><span className="text-[11px] font-bold uppercase text-[#718289]">Chỉ từ</span><div className="mt-1 flex items-end gap-1"><strong className="min-w-0 truncate text-[28px] font-black leading-none text-blue-nav">{price ? formatCurrency(price) : "Liên hệ"}</strong>{cycle && <span className="shrink-0 text-xs text-[#718289]">/ {formatBillingCycle(cycle)}</span>}</div></div>
     </div>
-    <div className="flex flex-1 flex-col px-5 pb-5">
+    <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
       <dl className="space-y-3">
         {specs.map((spec) => <div key={spec.label} className="flex items-center gap-3 text-sm"><dt className="flex min-w-0 flex-1 items-center gap-2 text-[#60727a]"><span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[var(--color-blue-primary-soft)] text-[11px] text-blue-primary"><i className={`fas ${spec.icon}`} aria-hidden="true" /></span><span className="truncate">{spec.label}</span></dt><dd className="max-w-[50%] truncate text-right font-bold text-[#263d48]" title={spec.value}>{spec.value}</dd></div>)}
       </dl>

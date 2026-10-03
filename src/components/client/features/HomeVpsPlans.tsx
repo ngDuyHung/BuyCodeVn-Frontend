@@ -76,7 +76,7 @@ export default function HomeVpsPlans() {
         </div>
 
         {error ? <ErrorState message={error} onRetry={() => setReloadKey((key) => key + 1)} /> : !loading && plans.length === 0 ? <EmptyState title="Chưa có gói VPS khả dụng" description="Các cấu hình VPS đang được cập nhật." /> : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <div className="-mx-4 grid snap-x snap-mandatory grid-flow-col auto-cols-[minmax(280px,84vw)] gap-4 overflow-x-auto scroll-px-4 px-4 pb-4 [scrollbar-width:none] [&>*]:snap-start [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-4 xl:gap-5">
             {loading ? Array.from({ length: 4 }, (_, index) => <PlanSkeleton key={index} />) : plans.map((plan) => <VpsPlanCard key={plan.id} plan={plan} actionHref="/vps" actionLabel="Chọn cấu hình" />)}
           </div>
         )}

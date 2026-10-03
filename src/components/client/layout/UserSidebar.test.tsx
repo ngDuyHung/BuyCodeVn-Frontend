@@ -29,6 +29,7 @@ describe("UserSidebar", () => {
     render(<UserSidebar />);
 
     const mobileNavigation = screen.getByRole("navigation", { name: "Điều hướng tài khoản trên di động" });
+    expect(within(mobileNavigation).getByText("Hosting")).toHaveClass("after:scale-x-100");
     fireEvent.click(within(mobileNavigation).getByRole("button", { name: "Thêm" }));
 
     const dialog = screen.getByRole("dialog", { name: "Quản lý tài khoản" });

@@ -54,6 +54,11 @@ export const normalizeApiError = (error: unknown): ApiError => {
     const isOffline =
       typeof navigator !== "undefined" && navigator.onLine === false;
     const status = error.response?.status;
+    const requestId =
+      payload?.request_id || error.response?.headers?.["x-request-id"];
+    const serverMessage = requestId
+      ? `Lỗi máy chủ, vui lòng thử lại sau. Mã yêu cầu: ${requestId}`
+      : "Lỗi máy chủ, vui lòng thử lại sau.";
     const networkMessage = isTimeout
       ? "Yêu cầu quá thời gian phản hồi. Vui lòng thử lại."
       : isOffline
@@ -61,15 +66,14 @@ export const normalizeApiError = (error: unknown): ApiError => {
         : "Không thể kết nối đến máy chủ.";
 
     return new ApiError(
-      (status && status >= 500 ? "Lỗi máy chủ, vui lòng thử lại sau." : null) ||
+      (status && status >= 500 ? serverMessage : null) ||
       payload?.error?.message ||
         payload?.message ||
         (error.response ? "Có lỗi xảy ra, vui lòng thử lại." : networkMessage),
       {
         status,
         code: payload?.error?.code,
-        requestId:
-          payload?.request_id || error.response?.headers?.["x-request-id"],
+        requestId,
         retryAfter: Number.isFinite(retryAfter) ? retryAfter : undefined,
         fieldErrors:
           status && status >= 500

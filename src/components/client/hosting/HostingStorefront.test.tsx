@@ -71,6 +71,8 @@ describe("HostingStorefront", () => {
   it("filters plans by category and shares filter pagination in the URL", async () => {
     render(<HostingStorefront />);
 
+    expect(screen.getByText("Hosting Giá Rẻ").parentElement).toHaveClass("snap-x", "overflow-x-auto");
+
     fireEvent.change(screen.getByLabelText("Danh mục server"), {
       target: { value: "server-01" },
     });
